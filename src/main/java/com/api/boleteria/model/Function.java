@@ -19,9 +19,9 @@ public class Function {
     @Column(nullable = false)
     private LocalDateTime date;
 
-    //@ManyToOne
-    //@Column(nullable = false)
-    //private Cinema cinema;
+    @ManyToOne
+    @Column(nullable = false)
+    private Cinema cinema;
 
     //@ManyToOne
     //@Column(nullable = false)

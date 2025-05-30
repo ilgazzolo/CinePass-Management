@@ -1,9 +1,11 @@
 package com.api.boleteria.service;
 
-import com.api.boleteria.dto.FunctionDetailDTO;
-import com.api.boleteria.dto.FunctionListDTO;
-import com.api.boleteria.dto.FunctionRequestDTO;
+import com.api.boleteria.dto.detail.FunctionDetailDTO;
+import com.api.boleteria.dto.list.FunctionListDTO;
+import com.api.boleteria.dto.request.FunctionRequestDTO;
+import com.api.boleteria.model.Cinema;
 import com.api.boleteria.model.Function;
+import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,15 +18,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FunctionService {
     private final IFunctionRepository functionRepo;
-    //private final ICinemaRepository cinemaRepo;
+    private final ICinemaRepository cinemaRepo;
     //private final IMovieRepository movieRepo;
 
     public FunctionDetailDTO create (FunctionRequestDTO entity){
         Function function = new Function();
         function.setDate(LocalDateTime.now());
 
-        //Cinema cinema = cinemaRepo.findById(entity.getCinemaId());
-        //function.setCinema(cinema);
+        Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow();
+        function.setCinema(cinema);
 
         //Movie movie = movieRepo.findById(entity.getMovieId());
         //function.setMovie(movie);

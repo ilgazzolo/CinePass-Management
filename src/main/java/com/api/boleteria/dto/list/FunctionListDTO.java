@@ -1,4 +1,4 @@
-package com.api.boleteria.dto;
+package com.api.boleteria.dto.list;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

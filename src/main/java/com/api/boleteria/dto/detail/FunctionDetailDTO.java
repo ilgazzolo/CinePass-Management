@@ -1,6 +1,4 @@
-package com.api.boleteria.dto;
-
-import java.time.LocalDateTime;
+package com.api.boleteria.dto.detail;
 
 public record FunctionDetailDTO(
         Long id,
