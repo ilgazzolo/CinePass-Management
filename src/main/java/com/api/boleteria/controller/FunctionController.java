@@ -17,7 +17,6 @@ import java.util.List;
 public class FunctionController {
     private final FunctionService functionService;
 
-    //POST, GET, DELETE, PUT
     @PostMapping
     public ResponseEntity<FunctionDetailDTO> create (@Valid @RequestBody FunctionRequestDTO entity){
         return ResponseEntity.ok(functionService.create(entity));
@@ -34,6 +33,17 @@ public class FunctionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<FunctionDetailDTO> getById(@PathVariable Long id){
+        return ResponseEntity.ok(functionService.findById(id));
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete (@PathVariable Long id){
+        functionService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<FunctionDetailDTO> update(@PathVariable Long id, @Valid @RequestBody FunctionRequestDTO entity){
+        return ResponseEntity.ok(functionService.updateById(id, entity));
     }
 }
