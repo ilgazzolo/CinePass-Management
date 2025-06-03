@@ -1,9 +1,11 @@
 package com.api.boleteria.dto.request;
 
+import com.api.boleteria.model.Function;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,4 +14,5 @@ public class CinemaRequestDTO {
     private Integer capacity;
 
 
+    private List<Function> functions;
 }
