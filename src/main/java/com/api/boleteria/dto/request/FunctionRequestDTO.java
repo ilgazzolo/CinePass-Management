@@ -1,5 +1,6 @@
 package com.api.boleteria.dto.request;
 
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 public class FunctionRequestDTO {
     @NotNull(message = "this field is required")
-    @Past(message = "the date cannot be passed")
+    @Future(message = "the date cannot be passed")
     private LocalDateTime date;
 
     @NotNull(message = "this field is required")

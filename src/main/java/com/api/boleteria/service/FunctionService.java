@@ -3,10 +3,13 @@ package com.api.boleteria.service;
 import com.api.boleteria.dto.detail.FunctionDetailDTO;
 import com.api.boleteria.dto.list.FunctionListDTO;
 import com.api.boleteria.dto.request.FunctionRequestDTO;
+import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Cinema;
 import com.api.boleteria.model.Function;
+import com.api.boleteria.model.Movie;
 import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
+import com.api.boleteria.repository.IMovieRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,26 +22,26 @@ import java.util.List;
 public class FunctionService {
     private final IFunctionRepository functionRepo;
     private final ICinemaRepository cinemaRepo;
-    //private final IMovieRepository movieRepo;
+    private final IMovieRepository movieRepo;
 
     public FunctionDetailDTO create (FunctionRequestDTO entity){
         Function function = new Function();
-        function.setDate(LocalDateTime.now());
+        function.setDate(entity.getDate());
 
-        Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow();
+        Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow(() -> new NotFoundException("cinema not found"));
         function.setCinema(cinema);
 
-        //Movie movie = movieRepo.findById(entity.getMovieId());
-        //function.setMovie(movie);
+        Movie movie = movieRepo.findById(entity.getMovieId()).orElseThrow(() -> new NotFoundException("movie not found") );
+        function.setMovie(movie);
 
         Function saved = functionRepo.save(function);
 
         return new FunctionDetailDTO(
                 saved.getId(),
-                saved.getDate(),
-/*                cinema.getId(),
+                saved.getDate().format(DateTimeFormatter.ISO_DATE_TIME),
+                cinema.getId(),
                 movie.getId(),
-                movie.getName()*/
+                movie.getTitle()
         );
     }
 
@@ -48,9 +51,9 @@ public class FunctionService {
                         f.getId(),
                         f.getDate().toLocalDate(),
                         f.getDate().toLocalTime(),
-                        /*f.getCinema().getId(),
-                        f.getMovie().getName()
-                */))
+                        f.getCinema().getId(),
+                        f.getMovie().getTitle()
+                ))
                 .toList();
     }
 
@@ -60,9 +63,9 @@ public class FunctionService {
         return new FunctionDetailDTO(
                 function.getId(),
                 function.getDate().format(DateTimeFormatter.ISO_DATE_TIME),
-                /* function.getCinema.getId(),
-                function.getMovie.getId(),
-                function.getMovie.getName()*/
+                function.getCinema().getId(),
+                function.getMovie().getId(),
+                function.getMovie().getTitle()
         );
     }
 
@@ -70,23 +73,30 @@ public class FunctionService {
         return functionRepo.findById(id)
                 .map(f -> {
                     f.setDate(entity.getDate());
-                    /*f.setCinema(entity.getCinema());
-                    f.setMovie(entity.getMovie());*/
+
+                    Cinema cinema = cinemaRepo.findById(entity.getCinemaId())
+                            .orElseThrow(() -> new NotFoundException("Cinema not found"));
+                    f.setCinema(cinema);
+
+                    Movie movie = movieRepo.findById(entity.getMovieId())
+                            .orElseThrow(() -> new NotFoundException("Movie not found"));
+                    f.setMovie(movie);
+
                     Function created = functionRepo.save(f);
                     return new FunctionDetailDTO(
                             created.getId(),
-                            created.getDate().format(DateTimeFormatter.BASIC_ISO_DATE),
-                            /* created.getCinema.getId(),
-                            created.getMovie.getId(),
-                            created.getMovie.getName()*/
+                            created.getDate().format(DateTimeFormatter.ISO_DATE_TIME),
+                            created.getCinema().getId(),
+                            created.getMovie().getId(),
+                            created.getMovie().getTitle()
                     );
                 })
-                .orElseThrow(() -> new RuntimeException("crear exception 'NotFoundException' "+id));
+                .orElseThrow(() -> new NotFoundException("not found ID function: "+id));
     }
 
     public void deleteById (Long id){
         if (!functionRepo.existsById(id)){
-            throw new RuntimeException("lanzar personalizada"+id);
+            throw new NotFoundException("not found ID function: "+id);
         }
         functionRepo.deleteById(id);
     }

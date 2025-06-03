@@ -26,7 +26,7 @@ public class FunctionController {
     public ResponseEntity<List<FunctionListDTO>> getAll(){
         List<FunctionListDTO> list = functionService.findAll();
         if (list.isEmpty()){
-            throw new RuntimeException("lanzar personalizada");
+            return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(list);
     }

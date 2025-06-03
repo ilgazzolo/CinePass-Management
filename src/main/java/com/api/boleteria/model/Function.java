@@ -20,10 +20,10 @@ public class Function {
     private LocalDateTime date;
 
     @ManyToOne
-    @Column(nullable = false)
+    @JoinColumn(name = "cinema_id", nullable = false)
     private Cinema cinema;
 
-    //@ManyToOne
-    //@Column(nullable = false)
-    //private Movie movie;
+    @ManyToOne
+    @JoinColumn(name = "movie_id", nullable = false)
+    private Movie movie;
 }

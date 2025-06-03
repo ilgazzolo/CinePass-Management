@@ -22,6 +22,6 @@ public class Cinema {
     @Column(nullable = false)
     private Integer capacity;
 
-    @OneToMany
+    @OneToMany(mappedBy = "cinema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Function> functionList = new ArrayList<>();
 }
