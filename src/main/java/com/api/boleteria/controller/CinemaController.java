@@ -6,6 +6,7 @@ import com.api.boleteria.dto.request.CinemaRequestDTO;
 import com.api.boleteria.service.CinemaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,8 @@ import java.util.List;
 
 public class CinemaController {
 
-    private final CinemaService cinemaService;
+    @Autowired
+    private CinemaService cinemaService;
 
     @PostMapping
     public ResponseEntity<CinemaDetailDTO> create(@Valid @RequestBody CinemaRequestDTO entity){

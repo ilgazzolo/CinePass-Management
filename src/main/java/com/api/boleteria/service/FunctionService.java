@@ -3,6 +3,7 @@ package com.api.boleteria.service;
 import com.api.boleteria.dto.detail.FunctionDetailDTO;
 import com.api.boleteria.dto.list.FunctionListDTO;
 import com.api.boleteria.dto.request.FunctionRequestDTO;
+import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Cinema;
 import com.api.boleteria.model.Function;
@@ -10,6 +11,7 @@ import com.api.boleteria.model.Movie;
 import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import com.api.boleteria.repository.IMovieRepository;
+import com.api.boleteria.validators.FunctionValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +27,30 @@ public class FunctionService {
     private final IMovieRepository movieRepo;
 
     public FunctionDetailDTO create (FunctionRequestDTO entity){
+        ///  valida los campos ingresados
+        FunctionValidator.validate(entity);
+
+        /// valida que no haya una funcion en esa sala en esa fecha
+        if (functionRepo.existsByCinemaIdAndDate(entity.getCinemaId(), entity.getDate())) {
+            throw new BadRequestException("Ya existe una función para esa sala en ese horario.");
+        }
+
+        ///  verifica que no se creen funciones para dentro de mas de dos años
+        if (entity.getDate().isAfter(LocalDateTime.now().plusYears(2))) {
+            throw new BadRequestException("La fecha de la función es demasiado lejana.");
+        }
         Function function = new Function();
         function.setDate(entity.getDate());
 
-        Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow(() -> new NotFoundException("cinema not found"));
+        Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow(() -> new NotFoundException("No existe la sala ingresada."));
         function.setCinema(cinema);
 
-        Movie movie = movieRepo.findById(entity.getMovieId()).orElseThrow(() -> new NotFoundException("movie not found") );
+        Movie movie = movieRepo.findById(entity.getMovieId()).orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada.") );
         function.setMovie(movie);
+
+        ///  Verifica que no haya funciones en el rango horario
+        List<Function> funcionesEnSala = functionRepo.findByCinemaId(entity.getCinemaId());
+        FunctionValidator.validateHorario(entity, movie, funcionesEnSala);
 
         Function saved = functionRepo.save(function);
 
@@ -70,6 +88,7 @@ public class FunctionService {
     }
 
     public FunctionDetailDTO updateById (Long id, FunctionRequestDTO entity){
+        FunctionValidator.validate(entity);
         return functionRepo.findById(id)
                 .map(f -> {
                     f.setDate(entity.getDate());

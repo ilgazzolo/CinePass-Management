@@ -13,7 +13,7 @@ public class MovieRequestDTO {
     private String title;
 
     @NotNull(message = "this field is required")
-    private String duration;
+    private Integer duration;
 
     @NotNull(message = "this field is required")
     private String genre;

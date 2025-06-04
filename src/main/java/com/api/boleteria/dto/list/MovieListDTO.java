@@ -3,10 +3,10 @@ package com.api.boleteria.dto.list;
 public record MovieListDTO(
         Long id,
         String title,
-        String duration,
+        Integer duration,
         String genre,
         String director,
         String rating,
-        String synopsis,
-        Long functionId
+        String synopsis
+        // Long functionId
 ) {}
