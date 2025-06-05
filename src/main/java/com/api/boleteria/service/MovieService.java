@@ -37,7 +37,7 @@ public class MovieService {
         }
 
         // Obtener la función asociada
-        Function function = functionRepository.findById(req.getFunctionId())
+        Function function = functionRepository.findById(req.getFunctionList().getId())
                 .orElseThrow(() -> new BadRequestException("No existe la función con ID " + req.getFunctionId()));
 
         // Crear nueva entidad Movie
@@ -54,7 +54,7 @@ public class MovieService {
         Movie saved = movieRepository.save(movie);
 
         // Devolver DTO
-        return new MovieDetailDTO(saved.getId(), saved.getTitle(), function.getId());
+        return new MovieDetailDTO(saved.getId(), saved.getTitle(), saved.getFunctionList());
     }
 
 
@@ -89,8 +89,8 @@ public class MovieService {
                 .orElseThrow(()-> new RuntimeException("crear excepcion"));
         return new MovieDetailDTO(
                 m.getId(),
-                m.getTitle()
-              //  m.getFunctionList()
+                m.getTitle(),
+                m.getFunctionList()
         );
     }
 
@@ -109,8 +109,8 @@ public class MovieService {
 
                     return MovieDetailDTO(
                             update.getId(),
-                            update.getTitle()
-                           // update.getFunction().getId()
+                            update.getTitle(),
+                            update.getFunctionList()
                     );
                 }).orElseThrow(()-> new NotFoundException("No existe esa pelicula"));
     }
