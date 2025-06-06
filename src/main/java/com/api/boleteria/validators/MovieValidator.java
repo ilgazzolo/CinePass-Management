@@ -11,8 +11,8 @@ public class MovieValidator {
             if (dto.getTitle() == null || dto.getTitle().isBlank()) {
                 throw new IllegalArgumentException("El título no puede estar vacío.");
             }
-            if (dto.getDuration() == null || !dto.getDuration().matches("\\d{1,3} min")) {
-                throw new IllegalArgumentException("La duración debe tener formato válido (ej: '120 min').");
+            if (dto.getDuration() == null || dto.getDuration() > 0) {
+                throw new IllegalArgumentException("La duración debe ser mayor que 0.");
             }
             if (dto.getGenre() == null || dto.getGenre().isBlank()) {
                 throw new IllegalArgumentException("El género no puede estar vacío.");

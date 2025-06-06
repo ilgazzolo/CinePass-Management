@@ -79,7 +79,8 @@ public class MovieService {
                         movie.getGenre(),
                         movie.getDirector(),
                         movie.getRating(),
-                        movie.getSynopsis()
+                        movie.getSynopsis(),
+                        movie.getFunctionList()
                 ))
                 .toList();
     }
@@ -103,11 +104,11 @@ public class MovieService {
                     movie.setDirector(entity.getDirector());
                     movie.setRating(entity.getRating());
                     movie.setSynopsis(entity.getSynopsis());
-                   // movie.setFunctionId(entity.getFunctionId());
+                    movie.setFunctionList(entity.getFunctionList());
 
                     Movie update = movieRepository.save(movie);
 
-                    return MovieDetailDTO(
+                    return new MovieDetailDTO(
                             update.getId(),
                             update.getTitle(),
                             update.getFunctionList()
