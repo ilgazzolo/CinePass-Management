@@ -17,7 +17,7 @@ public class UserRequestDTO {
 
     @NotBlank(message = "El apellido no puede ser nulo")
     @Size(min = 1,max = 50, message = "Min 1 caracter, Max 50 caracteres")
-    private String surname;
+    private String username;
 
     @Email(message = "El email debe tener un formato valido")
     private String email;
@@ -28,4 +28,13 @@ public class UserRequestDTO {
 
     @NotNull(message = "El rol es obligatorio")
     private Role role;
+
+
+    public UserRequestDTO(String name, String username, String email, String password, Role role) {
+        this.name = name;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
 }

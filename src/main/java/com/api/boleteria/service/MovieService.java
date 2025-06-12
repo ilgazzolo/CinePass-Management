@@ -26,7 +26,7 @@ public class MovieService {
     @Autowired
     private IFunctionRepository functionRepository;
 
-
+    /*
     public MovieDetailDTO create(MovieRequestDTO req) {
         // Validación de campos del DTO
         MovieValidator.CamposValidator(req);
@@ -56,6 +56,8 @@ public class MovieService {
         // Devolver DTO
         return new MovieDetailDTO(saved.getId(), saved.getTitle(), saved.getFunctionList());
     }
+    */
+
 
 
     /*
