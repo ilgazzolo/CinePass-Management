@@ -1,12 +1,16 @@
-package com.api.boleteria.dto.request.UsuarioRequest;
+package com.api.boleteria.dto.request;
 
 import com.api.boleteria.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
-public class UsuarioRequestDTO {
+@Getter
+@Setter
+public class UserRequestDTO {
     @NotBlank(message = "El nombre no puede ser nulo")
     @Size(min = 1,max = 50, message = "Min 1 caracter, Max 50 caracteres")
     private String name;
