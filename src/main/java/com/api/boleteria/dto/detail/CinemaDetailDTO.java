@@ -8,5 +8,4 @@ public record CinemaDetailDTO (
         Long id,
         Integer capacity,
         List<Function> functions // creo que con DTO está bien
-
 ) {}

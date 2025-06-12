@@ -11,7 +11,7 @@ public class MovieValidator {
             if (dto.getTitle() == null || dto.getTitle().isBlank()) {
                 throw new IllegalArgumentException("El título no puede estar vacío.");
             }
-            if (dto.getDuration() == null || dto.getDuration() > 0) {
+            if (dto.getMin() == null || dto.getMin() > 0) {
                 throw new IllegalArgumentException("La duración debe ser mayor que 0.");
             }
             if (dto.getGenre() == null || dto.getGenre().isBlank()) {

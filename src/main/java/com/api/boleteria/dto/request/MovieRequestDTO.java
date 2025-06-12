@@ -1,6 +1,5 @@
 package com.api.boleteria.dto.request;
 
-import com.api.boleteria.model.Function;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -17,7 +16,7 @@ public class MovieRequestDTO {
     private String title;
 
     @NotNull(message = "this field is required")
-    private Integer duration;
+    private Integer min;
 
     @NotBlank(message = "this field is required")
     private String genre;
@@ -31,6 +30,5 @@ public class MovieRequestDTO {
     @NotBlank(message = "this field is required")
     private String synopsis;
 
-    @NotNull(message = "this field is required")
-    private List<Function> functionList;
+    private List<Long> functionListId;
 }

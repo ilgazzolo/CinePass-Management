@@ -1,9 +1,7 @@
 package com.api.boleteria.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Cleanup;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,7 +23,7 @@ public class Movie {
     private String title;
 
     @Column(nullable = false)
-    private Integer duration;
+    private Integer min;
 
     @Column(nullable = false)
     private String genre;

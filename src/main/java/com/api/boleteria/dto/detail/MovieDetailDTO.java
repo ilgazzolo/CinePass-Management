@@ -1,11 +1,16 @@
 package com.api.boleteria.dto.detail;
 
-import com.api.boleteria.model.Function;
+
 
 import java.util.List;
 
 public record MovieDetailDTO(
         Long id,
         String title,
-        List<Function> functionList
+        Integer min,
+        String genre,
+        String director,
+        String rating,
+        String synopsis,
+        List<Long> functionListID
 ){}
