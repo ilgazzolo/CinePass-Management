@@ -29,7 +29,6 @@ public class MovieService {
     @Autowired
     private IFunctionRepository functionRepository;
 
-    /*
     public MovieDetailDTO create(MovieRequestDTO req) {
         // Validación de campos del DTO
         MovieValidator.CamposValidator(req);
@@ -80,11 +79,9 @@ public class MovieService {
                 );
 
     }
-    */
 
 
 
-    /*
     public boolean movieExistsByTitle(String title) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("El título no puede estar vacío.");
@@ -92,7 +89,6 @@ public class MovieService {
         return movieRepository.existsByTitle(title.trim());
     }
 
-     */
 
 
 

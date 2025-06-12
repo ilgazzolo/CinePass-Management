@@ -13,6 +13,5 @@ public class CinemaRequestDTO {
     @NotNull(message = "this field is required")
     private Integer capacity;
 
-
-    private List<Function> functions;
+    private List<Long> functionsId;
 }
