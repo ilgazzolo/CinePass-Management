@@ -29,7 +29,7 @@ public class MovieService {
     @Autowired
     private IFunctionRepository functionRepository;
 
-
+    /*
     public MovieDetailDTO create(MovieRequestDTO req) {
         // Validación de campos del DTO
         MovieValidator.CamposValidator(req);
@@ -80,6 +80,8 @@ public class MovieService {
                 );
 
     }
+    */
+
 
 
     /*
