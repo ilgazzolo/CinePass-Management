@@ -31,11 +31,11 @@ public class FunctionValidator {
     // Validación de solapamiento de horarios en la misma sala
     public static void validateHorario(FunctionRequestDTO dto, Movie movie, List<Function> funcionesEnSala) {
         LocalDateTime nuevaInicio = dto.getDate();
-        LocalDateTime nuevaFin = nuevaInicio.plusMinutes(movie.getMin());
+        LocalDateTime nuevaFin = nuevaInicio.plusMinutes(movie.getDuration());
 
         for (Function f : funcionesEnSala) {
             LocalDateTime existenteInicio = f.getDate();
-            LocalDateTime existenteFin = existenteInicio.plusMinutes(f.getMovie().getMin());
+            LocalDateTime existenteFin = existenteInicio.plusMinutes(f.getMovie().getDuration());
 
             boolean seSolapan = nuevaInicio.isBefore(existenteFin) && existenteInicio.isBefore(nuevaFin);
             if (seSolapan) {

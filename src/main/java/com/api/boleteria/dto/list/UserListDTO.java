@@ -2,8 +2,7 @@ package com.api.boleteria.dto.list;
 
 public record UserListDTO(
         Long id,
-        String nombre,
-        String apellido,
+        String username,
         String email,
         String role
 ) {

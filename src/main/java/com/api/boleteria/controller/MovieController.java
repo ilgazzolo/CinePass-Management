@@ -16,13 +16,13 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/peliculas")
+@RequestMapping("/api/movies")
 public class MovieController {
 
     @Autowired
     private MovieService movieService;
 
-    @PostMapping
+    @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MovieDetailDTO> create (@Valid @RequestBody MovieRequestDTO req){
         return ResponseEntity.ok(movieService.create(req));
@@ -44,7 +44,7 @@ public class MovieController {
         return ResponseEntity.ok(movieService.findById(id));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete (@PathVariable Long id){
         movieService.deleteById(id);
@@ -52,7 +52,7 @@ public class MovieController {
     }
 
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MovieDetailDTO> update(@PathVariable Long id, @Valid @RequestBody MovieRequestDTO req){
         return ResponseEntity.ok(movieService.updateById(id, req));

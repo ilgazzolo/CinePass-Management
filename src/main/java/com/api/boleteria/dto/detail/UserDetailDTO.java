@@ -2,10 +2,10 @@ package com.api.boleteria.dto.detail;
 
 public record UserDetailDTO(
         Long id,
-        String nombre,
-        String apellido,
+        String name,
+        String surname,
+        String username,
         String email,
-        String password,
         String role
 ) {}
 

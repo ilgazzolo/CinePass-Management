@@ -16,7 +16,7 @@ public class MovieRequestDTO {
     private String title;
 
     @NotNull(message = "this field is required")
-    private Integer min;
+    private Integer duration;
 
     @NotBlank(message = "this field is required")
     private String genre;

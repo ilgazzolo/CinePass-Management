@@ -38,6 +38,7 @@ public class MovieService {
             throw new BadRequestException("Ya existe una película con el título: " + req.getTitle());
         }
 
+        /*             //No es necesario una funcion si o si
         List<Function> functionList = functionRepository.findAllById(req.getFunctionListId());
 
         Set<Long> providedIds = new HashSet<>(req.getFunctionListId());
@@ -50,16 +51,17 @@ public class MovieService {
         if (!providedIds.isEmpty()) {
             throw new NotFoundException("this functions doesn't exist: " + providedIds);
         }
+        */
 
         // Crear nueva entidad Movie
         Movie movie = new Movie();
         movie.setTitle(req.getTitle().trim());
-        movie.setMin(req.getMin());
+        movie.setDuration(req.getDuration());
         movie.setGenre(req.getGenre());
         movie.setDirector(req.getDirector());
         movie.setRating(req.getRating());
         movie.setSynopsis(req.getSynopsis());
-        movie.setFunctionList(functionList);
+        //movie.setFunctionList(functionList);
 
         // Guardar
         Movie saved = movieRepository.save(movie);
@@ -68,7 +70,7 @@ public class MovieService {
         return new MovieDetailDTO(
                 saved.getId(),
                 saved.getTitle(),
-                saved.getMin(),
+                saved.getDuration(),
                 saved.getGenre(),
                 saved.getDirector(),
                 saved.getRating(),
@@ -97,7 +99,7 @@ public class MovieService {
                 map(movie -> new MovieListDTO(
                         movie.getId(),
                         movie.getTitle(),
-                        movie.getMin(),
+                        movie.getDuration(),
                         movie.getGenre(),
                         movie.getDirector()
                 ))
@@ -110,7 +112,7 @@ public class MovieService {
         return new MovieDetailDTO(
                 m.getId(),
                 m.getTitle(),
-                m.getMin(),
+                m.getDuration(),
                 m.getGenre(),
                 m.getDirector(),
                 m.getRating(),
@@ -125,7 +127,7 @@ public class MovieService {
         return movieRepository.findById(id).
                 map(movie -> {
                     movie.setTitle(entity.getTitle());
-                    movie.setMin(entity.getMin());
+                    movie.setDuration(entity.getDuration());
                     movie.setGenre(entity.getGenre());
                     movie.setDirector(entity.getDirector());
                     movie.setRating(entity.getRating());
@@ -140,7 +142,7 @@ public class MovieService {
                     return new MovieDetailDTO(
                             update.getId(),
                             update.getTitle(),
-                            update.getMin(),
+                            update.getDuration(),
                             update.getGenre(),
                             update.getDirector(),
                             update.getRating(),

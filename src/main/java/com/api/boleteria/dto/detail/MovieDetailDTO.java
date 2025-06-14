@@ -7,7 +7,7 @@ import java.util.List;
 public record MovieDetailDTO(
         Long id,
         String title,
-        Integer min,
+        Integer duration,
         String genre,
         String director,
         String rating,

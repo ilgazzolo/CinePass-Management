@@ -5,15 +5,23 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserRequestDTO {
     @NotBlank(message = "El nombre no puede ser nulo")
     @Size(min = 1,max = 50, message = "Min 1 caracter, Max 50 caracteres")
     private String name;
+
+    @NotBlank(message = "El apellido no puede ser nulo")
+    @Size(min = 1,max = 50, message = "Min 1 caracter, Max 50 caracteres")
+    private String surname;
 
     @NotBlank(message = "El apellido no puede ser nulo")
     @Size(min = 1,max = 50, message = "Min 1 caracter, Max 50 caracteres")
@@ -29,12 +37,4 @@ public class UserRequestDTO {
     @NotNull(message = "El rol es obligatorio")
     private Role role;
 
-
-    public UserRequestDTO(String name, String username, String email, String password, Role role) {
-        this.name = name;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-    }
 }

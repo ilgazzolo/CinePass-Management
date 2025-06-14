@@ -11,7 +11,7 @@ public class MovieValidator {
             if (dto.getTitle() == null || dto.getTitle().isBlank()) {
                 throw new IllegalArgumentException("El título no puede estar vacío.");
             }
-            if (dto.getMin() == null || dto.getMin() > 0) {
+            if (dto.getDuration() == null || dto.getDuration() < 0) {
                 throw new IllegalArgumentException("La duración debe ser mayor que 0.");
             }
             if (dto.getGenre() == null || dto.getGenre().isBlank()) {
@@ -20,15 +20,18 @@ public class MovieValidator {
             if (dto.getDirector() == null || dto.getDirector().isBlank()) {
                 throw new IllegalArgumentException("El director no puede estar vacío.");
             }
-            if (dto.getRating() == null || !dto.getRating().isBlank()) {
+            if (dto.getRating() == null || dto.getRating().isBlank()) {
                 throw new IllegalArgumentException("El rating no es válido.");
             }
             if (dto.getSynopsis() == null || dto.getSynopsis().isBlank()) {
                 throw new IllegalArgumentException("La sinopsis no puede estar vacía.");
             }
+
+
+            /*               ///No es obligatorio tener una funcion, sino no puedo crear peliculas
             if (dto.getFunctionId() == null || dto.getFunctionId() <= 0) {
                 throw new IllegalArgumentException("El ID de función es obligatorio y debe ser positivo.");
-            }
+            }*/
         }
 
 

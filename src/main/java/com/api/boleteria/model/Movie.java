@@ -23,7 +23,7 @@ public class Movie {
     private String title;
 
     @Column(nullable = false)
-    private Integer min;
+    private Integer duration;
 
     @Column(nullable = false)
     private String genre;
@@ -36,6 +36,7 @@ public class Movie {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String synopsis;
+
 
     @OneToMany
     private List<Function> functionList = new ArrayList<>();

@@ -6,6 +6,7 @@ import com.api.boleteria.dto.request.UserRequestDTO;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.User;
 import com.api.boleteria.repository.IUserRepository;
+import com.api.boleteria.validators.UserValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,8 +28,10 @@ public class UserService implements UserDetailsService {
 
     public UserDetailDTO save (UserRequestDTO req){
 
+        UserValidator.CamposValidator(req);
         User entity = new User(
                 req.getName(),
+                req.getSurname(),
                 req.getUsername(),
                 req.getEmail(),
                 req.getPassword(),
@@ -39,9 +42,9 @@ public class UserService implements UserDetailsService {
         return new UserDetailDTO(
                 saved.getId(),
                 saved.getName(),
+                saved.getSurname(),
                 saved.getUsername(),
                 saved.getEmail(),
-                saved.getPassword(),
                 saved.getRole().name()
         );
     }
@@ -52,7 +55,6 @@ public class UserService implements UserDetailsService {
                 .stream()
                 .map(u -> new UserListDTO(
                         u.getId(),
-                        u.getName(),
                         u.getUsername(),
                         u.getEmail(),
                         u.getRole().name()
