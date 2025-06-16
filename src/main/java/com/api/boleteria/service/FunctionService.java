@@ -41,9 +41,10 @@ public class FunctionService {
         }
         Function function = new Function();
         function.setDate(entity.getDate());
-
         Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow(() -> new NotFoundException("No existe la sala ingresada."));
         function.setCinema(cinema);
+
+        function.setCapacidadDisponible(cinema.getCapacity());
 
         Movie movie = movieRepo.findById(entity.getMovieId()).orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada.") );
         function.setMovie(movie);

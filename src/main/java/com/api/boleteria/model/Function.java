@@ -19,6 +19,10 @@ public class Function {
     @Column(nullable = false)
     private LocalDateTime date;
 
+    @Column(nullable = false)
+    private Integer capacidadDisponible;
+
+
     @ManyToOne
     @JoinColumn(name = "cinema_id", nullable = false)
     private Cinema cinema;
@@ -26,4 +30,7 @@ public class Function {
     @ManyToOne
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
+
+
+
 }
