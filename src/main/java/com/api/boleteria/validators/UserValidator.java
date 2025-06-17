@@ -1,10 +1,10 @@
 package com.api.boleteria.validators;
-import com.api.boleteria.dto.request.UserRequestDTO;
+import com.api.boleteria.dto.request.RegisterRequestDTO;
 
 
 public class UserValidator {
 
-    public static void CamposValidator(UserRequestDTO dto) {
+    public static void CamposValidator(RegisterRequestDTO dto) {
         if (dto.getName() == null || dto.getName().isBlank()) {
             throw new IllegalArgumentException("El nombre no puede estar vacío.");
         }
@@ -20,9 +20,7 @@ public class UserValidator {
         if (dto.getEmail() == null || dto.getEmail().isBlank() || !dto.getEmail().contains("@")) {
             throw new IllegalArgumentException("El email no es válido.");
         }
-        if (dto.getRole() == null) {
-            throw new IllegalArgumentException("El rol es obligatorio.");
-        }
+
 
 
 

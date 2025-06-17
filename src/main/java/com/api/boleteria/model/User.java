@@ -1,13 +1,13 @@
 package com.api.boleteria.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -40,12 +40,12 @@ public class User {
     private List<Boleto> boletos = new ArrayList<>();
 
 
-    public User(String name, String surname, String username, String email, String password, Role role) {
+    public User(String name, String surname, String username, String email, String password) {
         this.name = name;
         this.surname = surname;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.role = role;
+        this.role = Role.CLIENT;
     }
 }

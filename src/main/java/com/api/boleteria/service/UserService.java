@@ -3,18 +3,17 @@ package com.api.boleteria.service;
 import com.api.boleteria.dto.detail.UserDetailDTO;
 import com.api.boleteria.dto.list.BoletoListDTO;
 import com.api.boleteria.dto.list.UserListDTO;
-import com.api.boleteria.dto.request.UserRequestDTO;
-import com.api.boleteria.exception.BadRequestException;
+import com.api.boleteria.dto.request.RegisterRequestDTO;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Boleto;
+import com.api.boleteria.model.Role;
 import com.api.boleteria.model.User;
 import com.api.boleteria.repository.IBoletoRepository;
 import com.api.boleteria.repository.IUserRepository;
 import com.api.boleteria.validators.UserValidator;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -34,7 +33,7 @@ public class UserService implements UserDetailsService {
 
 
     ///  registar un usuario
-    public UserDetailDTO save (UserRequestDTO req){
+    public UserDetailDTO save (RegisterRequestDTO req){
 
         UserValidator.CamposValidator(req);
         User entity = new User(
@@ -42,8 +41,7 @@ public class UserService implements UserDetailsService {
                 req.getSurname(),
                 req.getUsername(),
                 req.getEmail(),
-                req.getPassword(),
-                req.getRole());
+                req.getPassword());
 
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
         User saved = userRepository.save(entity);
@@ -102,7 +100,7 @@ public class UserService implements UserDetailsService {
     }
 
     ///  actualizar un usuario
-    public UserDetailDTO updateById (Long id, UserRequestDTO entity){
+    public UserDetailDTO updateById (Long id, RegisterRequestDTO entity){
         return userRepository.findById(id)
                 .map( u -> {
                     u.setName(entity.getName());
@@ -128,12 +126,16 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("user not found: "+username));
+
+        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName());
+
         return new org.springframework.security.core.userdetails.User(
-                user.getName(),
+                user.getUsername(),
                 user.getPassword(),
-                List.of(new SimpleGrantedAuthority(user.getRole().getRoleName()))
+                List.of(authority)
         );
     }
 
@@ -167,5 +169,15 @@ public class UserService implements UserDetailsService {
                         b.getPrecio()
                 ))
                 .toList();
+    }
+
+    public boolean makeUserAdmin(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> {
+                    user.setRole(Role.ADMIN);
+                    userRepository.save(user);
+                    return true;
+                })
+                .orElse(false);
     }
 }

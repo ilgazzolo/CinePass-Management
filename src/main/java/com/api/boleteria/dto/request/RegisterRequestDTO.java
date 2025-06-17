@@ -3,7 +3,6 @@ package com.api.boleteria.dto.request;
 import com.api.boleteria.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +13,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRequestDTO {
+public class RegisterRequestDTO {
     @NotBlank(message = "El nombre no puede ser nulo")
     @Size(min = 1,max = 50, message = "Min 1 caracter, Max 50 caracteres")
     private String name;
@@ -34,7 +33,15 @@ public class UserRequestDTO {
     @Size(min=5, message = "Min 5 caracteres")
     private String password;
 
-    @NotNull(message = "El rol es obligatorio")
     private Role role;
+
+    public RegisterRequestDTO(String name, String surname, String username, String email, String password) {
+        this.name = name;
+        this.surname = surname;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = Role.CLIENT;
+    }
 
 }
