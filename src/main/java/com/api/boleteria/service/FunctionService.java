@@ -49,11 +49,13 @@ public class FunctionService {
         Movie movie = movieRepo.findById(entity.getMovieId()).orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada.") );
         function.setMovie(movie);
 
+
         ///  Verifica que no haya funciones en el rango horario
         List<Function> funcionesEnSala = functionRepo.findByCinemaId(entity.getCinemaId());
         FunctionValidator.validateHorario(entity, movie, funcionesEnSala);
 
         Function saved = functionRepo.save(function);
+        movie.getFunctionList().add(saved);
 
         return new FunctionDetailDTO(
                 saved.getId(),
@@ -72,7 +74,8 @@ public class FunctionService {
                         f.getDate().toLocalDate(),
                         f.getDate().toLocalTime(),
                         f.getCinema().getId(),
-                        f.getMovie().getTitle()
+                        f.getMovie().getTitle(),
+                        f.getCapacidadDisponible()
                 ))
                 .toList();
     }
@@ -137,7 +140,8 @@ public class FunctionService {
                         f.getDate().toLocalDate(),
                         f.getDate().toLocalTime(),
                         f.getCinema().getId(),
-                        f.getMovie().getTitle()
+                        f.getMovie().getTitle(),
+                        f.getCapacidadDisponible()
                 ))
                 .toList();
     }

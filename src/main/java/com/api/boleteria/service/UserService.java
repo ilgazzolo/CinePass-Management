@@ -142,7 +142,7 @@ public class UserService implements UserDetailsService {
     }
 
     ///  visualizar mis entrdas
-    public List<BoletoListDTO> visualizarBoletos() {
+    public List<BoletoListDTO> visualizarBoletos(Long user_id) {
         /* Obtener usuario autenticado
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
@@ -151,7 +151,7 @@ public class UserService implements UserDetailsService {
          */
 
         // Obtener boletos asociados
-        List<Boleto> boletos = boletoRepository.findByUserId(1L);
+        List<Boleto> boletos = boletoRepository.findByUserId(user_id);
 
         if (boletos.isEmpty()) {
             throw new NotFoundException("No se encontraron boletos para el usuario actual.");

@@ -36,7 +36,7 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Boleto> boletos = new ArrayList<>();
 
 

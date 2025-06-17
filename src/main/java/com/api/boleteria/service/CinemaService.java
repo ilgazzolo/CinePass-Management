@@ -31,11 +31,7 @@ public class CinemaService {
 
         return new CinemaDetailDTO(
                 saved.getId(),
-                saved.getCapacity(),
-                saved.getFunctionList()
-                        .stream()
-                        .map(Function::getId)
-                        .toList()
+                saved.getCapacity()
         );
     }
 
@@ -54,10 +50,7 @@ public class CinemaService {
 
         return new CinemaDetailDTO(
                 cinema.getId(),
-                cinema.getCapacity(),
-                cinema.getFunctionList().stream()
-                        .map(Function::getId)
-                        .toList()
+                cinema.getCapacity()
         );
     }
 
@@ -65,17 +58,11 @@ public class CinemaService {
         return cinemaRepository.findById(id).
                 map(c -> {
                     c.setCapacity(entity.getCapacity());
-                    List<Function>functions = functionRepository.findAllById(entity.getFunctionsId());
-                    c.setFunctionList(functions);
-
                     Cinema created = cinemaRepository.save(c);
-
                     return new CinemaDetailDTO(
                             created.getId(),
-                            created.getCapacity(),
-                            created.getFunctionList().stream()
-                                    .map(Function::getId)
-                                    .toList()
+                            created.getCapacity()
+
                     );
                 }).
                 orElseThrow(() -> new NotFoundException("doesn't exist cinema ID: "+id));

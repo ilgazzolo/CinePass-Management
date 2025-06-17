@@ -12,6 +12,4 @@ import java.util.List;
 public class CinemaRequestDTO {
     @NotNull(message = "this field is required")
     private Integer capacity;
-
-    private List<Long> functionsId;
 }

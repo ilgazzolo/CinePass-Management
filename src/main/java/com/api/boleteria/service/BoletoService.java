@@ -51,6 +51,10 @@ public class BoletoService {
 
         Boleto saved = boletoRepo.save(boleto);
 
+        ///  agrego boleto al usuario
+        user.getBoletos().add(saved);
+        usuarioRepo.save(user);
+
         return new BoletoDetailDTO(
                 saved.getId(),
                 saved.getPrecio(),

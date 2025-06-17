@@ -6,6 +6,5 @@ import java.util.List;
 
 public record CinemaDetailDTO (
         Long id,
-        Integer capacity,
-        List<Long> functionsID
+        Integer capacity
 ) {}
