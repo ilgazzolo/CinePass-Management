@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Past;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Data
@@ -30,6 +32,9 @@ public class Function {
     @ManyToOne
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
+
+    @OneToMany(mappedBy = "funcion", cascade = CascadeType.ALL)
+    private List<Boleto> boletos = new ArrayList<>();
 
 
 

@@ -1,14 +1,20 @@
 package com.api.boleteria.service;
 
 import com.api.boleteria.dto.detail.UserDetailDTO;
+import com.api.boleteria.dto.list.BoletoListDTO;
 import com.api.boleteria.dto.list.UserListDTO;
 import com.api.boleteria.dto.request.UserRequestDTO;
+import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
+import com.api.boleteria.model.Boleto;
 import com.api.boleteria.model.User;
+import com.api.boleteria.repository.IBoletoRepository;
 import com.api.boleteria.repository.IUserRepository;
 import com.api.boleteria.validators.UserValidator;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,8 +30,10 @@ public class UserService implements UserDetailsService {
 
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final IBoletoRepository boletoRepository;
 
 
+    ///  registar un usuario
     public UserDetailDTO save (UserRequestDTO req){
 
         UserValidator.CamposValidator(req);
@@ -49,7 +57,23 @@ public class UserService implements UserDetailsService {
         );
     }
 
+    /// inicio de sesion
+    /* public UserDetailDTO login(String username, String password) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
 
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new BadRequestException("Credenciales inválidas");
+        }
+
+
+        return new UserDetailDTO(user.getId(), user.getUsername(), user.getRole());
+    }
+
+     */
+
+
+    ///  ver todos los usuarios
     public List<UserListDTO> findAllUsers (){
         return userRepository.findAll()
                 .stream()
@@ -63,6 +87,7 @@ public class UserService implements UserDetailsService {
     }
 
 
+    ///  ver un usario por id
     public UserDetailDTO findById(Long id){
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("user ID: "+id+" not found"));
@@ -76,6 +101,7 @@ public class UserService implements UserDetailsService {
         );
     }
 
+    ///  actualizar un usuario
     public UserDetailDTO updateById (Long id, UserRequestDTO entity){
         return userRepository.findById(id)
                 .map( u -> {
@@ -114,5 +140,32 @@ public class UserService implements UserDetailsService {
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
-    
+
+    ///  visualizar mis entrdas
+    public List<BoletoListDTO> visualizarBoletos() {
+        /* Obtener usuario autenticado
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        Long userId = userDetails.getId()
+
+         */
+
+        // Obtener boletos asociados
+        List<Boleto> boletos = boletoRepository.findByUserId(1L);
+
+        if (boletos.isEmpty()) {
+            throw new NotFoundException("No se encontraron boletos para el usuario actual.");
+        }
+
+        // Mapear a DTO
+        return boletos.stream()
+                .map(b -> new BoletoListDTO(
+                        b.getId(),
+                        b.getFuncion().getId(),
+                        b.getFuncion().getMovie().getTitle(),
+                        b.getFuncion().getDate(),
+                        b.getPrecio()
+                ))
+                .toList();
+    }
 }

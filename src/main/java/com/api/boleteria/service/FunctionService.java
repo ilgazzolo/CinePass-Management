@@ -64,6 +64,7 @@ public class FunctionService {
         );
     }
 
+    ///  ver todas las funciones
     public List<FunctionListDTO> findAll(){
         return functionRepo.findAll().stream()
                 .map(f -> new FunctionListDTO(
@@ -76,6 +77,7 @@ public class FunctionService {
                 .toList();
     }
 
+    ///  ver una funcion por id
     public FunctionDetailDTO findById(Long id){
         Function function = functionRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("crear exception 'NotFoundException' "+id));
@@ -88,6 +90,7 @@ public class FunctionService {
         );
     }
 
+    ///  actualizar una funcion por id
     public FunctionDetailDTO updateById (Long id, FunctionRequestDTO entity){
         FunctionValidator.validate(entity);
         return functionRepo.findById(id)
@@ -114,10 +117,31 @@ public class FunctionService {
                 .orElseThrow(() -> new NotFoundException("not found ID function: "+id));
     }
 
+    ///  eliminar una funcion por id
     public void deleteById (Long id){
         if (!functionRepo.existsById(id)){
             throw new NotFoundException("not found ID function: "+id);
         }
         functionRepo.deleteById(id);
     }
+
+    ///  filtrar funciones por pelicula
+    public List<FunctionListDTO> findAvailableByMovieId(Long movieId) {
+        List<Function> funciones = functionRepo.findByMovieIdAndCapacidadDisponibleGreaterThanAndDateAfter(
+                movieId, 0, LocalDateTime.now()
+        );
+
+        return funciones.stream()
+                .map(f -> new FunctionListDTO(
+                        f.getId(),
+                        f.getDate().toLocalDate(),
+                        f.getDate().toLocalTime(),
+                        f.getCinema().getId(),
+                        f.getMovie().getTitle()
+                ))
+                .toList();
+    }
+
+
+
 }
