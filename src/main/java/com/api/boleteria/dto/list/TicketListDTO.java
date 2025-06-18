@@ -2,10 +2,10 @@ package com.api.boleteria.dto.list;
 
 import java.time.LocalDateTime;
 
-public record BoletoListDTO(
+public record TicketListDTO(
         Long id,
         Long funcionId,
-        String tituloPelicula,
-        LocalDateTime fecha,
-        Double precio
+        String movieTittle,
+        LocalDateTime date,
+        Double ticketPrice
 ) {}

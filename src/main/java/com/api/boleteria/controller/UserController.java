@@ -4,7 +4,6 @@ import com.api.boleteria.dto.detail.UserDetailDTO;
 import com.api.boleteria.dto.list.UserListDTO;
 import com.api.boleteria.dto.request.RegisterRequestDTO;
 import com.api.boleteria.service.UserService;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +60,7 @@ public class UserController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
-    public ResponseEntity<UserDetailDTO> verMiPerfil() {
+    public ResponseEntity<UserDetailDTO> getMyProfile() {
         UserDetailDTO user = userService.getProfile();
         return ResponseEntity.ok(user);
     }

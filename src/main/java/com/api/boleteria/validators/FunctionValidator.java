@@ -12,11 +12,11 @@ public class FunctionValidator {
 
     public static void validate(FunctionRequestDTO dto) {
         if (dto.getDate() == null) {
-            throw new BadRequestException("La fecha de la función no puede ser nula.");
+            throw new BadRequestException("La date de la función no puede ser nula.");
         }
 
         if (dto.getDate().isBefore(LocalDateTime.now())) {
-            throw new BadRequestException("La fecha de la función no puede estar en el pasado.");
+            throw new BadRequestException("La date de la función no puede estar en el pasado.");
         }
 
         if (dto.getCinemaId() == null || dto.getCinemaId() <= 0) {

@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+/**
+ * Servicio para gestionar operaciones relacionadas con Peliculas.
+ */
 @Service
 @RequiredArgsConstructor
 public class MovieService {
@@ -25,8 +27,8 @@ public class MovieService {
 
     /**
      * crea una nueva pelicula
-     * @param req MovieRequets del nuevo usuario
-     * @return MovieDetail
+     * @param req MovieRequets con lainformacion del nuevo usuario
+     * @return MovieDetail con la informacion del usuario creado
      */
     public MovieDetailDTO create(MovieRequestDTO req) {
         // Validación de campos del DTO
@@ -48,7 +50,6 @@ public class MovieService {
 
         Movie saved = movieRepository.save(movie);
 
-        // Devolver DTO
         return new MovieDetailDTO(
                 saved.getId(),
                 saved.getTitle(),
@@ -73,6 +74,11 @@ public class MovieService {
     }
 
 
+    /**
+     * mustra todas las peliculas asociadas a un genero en especifico
+     * @param genre genero de la pelicula a mostrar
+     * @return lista de MovieList con la informacion de las peliculas encontradas
+     */
     public List<MovieListDTO> findByMovieGenre(String genre) {
         return movieRepository.findByMovieGenre(genre).stream()
                 .map(movie -> new MovieListDTO(
@@ -86,6 +92,10 @@ public class MovieService {
     }
 
 
+    /**
+     * obtiene todas las peliculas cargadas
+     * @return lista de MovieList con la informacion de las peliculas encontradas
+     */
     public List<MovieListDTO> findAll(){
         return movieRepository.findAll().stream().
                 map(movie -> new MovieListDTO(
@@ -99,6 +109,11 @@ public class MovieService {
     }
 
 
+    /**
+     * obtiene una pelicula segun un ID especificado
+     * @param id ID de la pelcula a buscar
+     * @return MovieDetail con la informacion de la pelicula encontrada
+     */
     public MovieDetailDTO findById(Long id){
         Movie m = movieRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("La pelicula con ID: "+id+" no fue encontrada."));
@@ -118,6 +133,12 @@ public class MovieService {
     }
 
 
+    /**
+     * actualiza una pelicula, segun un ID especificado
+     * @param id ID de la pelicula a actualizar
+     * @param entity DTO con los cambios realizados
+     * @return MovieDetail con la informacion de la pelicula actualizada
+     */
     public MovieDetailDTO updateById(Long id, MovieRequestDTO entity){
         return movieRepository.findById(id).
                 map(movie -> {
@@ -151,6 +172,10 @@ public class MovieService {
     }
 
 
+    /**
+     * elimina una pelicula segun un ID especficado
+     * @param id ID de la pelicula a eliminar
+     */
     public void deleteById(Long id){
         if(!movieRepository.existsById(id)){
             throw new NotFoundException("La pelicula con ID: "+id+" no fue encontrada.");

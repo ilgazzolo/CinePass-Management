@@ -12,22 +12,22 @@ import java.util.List;
 @Setter
 public class MovieRequestDTO {
 
-    @NotBlank(message = "this field is required")
+    @NotBlank(message = "El titulo es obligatorio")
     private String title;
 
-    @NotNull(message = "this field is required")
+    @NotNull(message = "La duracion es obligatoria")
     private Integer duration;
 
-    @NotBlank(message = "this field is required")
+    @NotBlank(message = "El genero es obligatorio")
     private String genre;
 
-    @NotBlank(message = "this field is required")
+    @NotBlank(message = "El director es obligatorio")
     private String director;
 
-    @NotBlank(message = "this field is required")
+    @NotBlank(message = "El genero es obligatorio")
     private String rating;
 
-    @NotBlank(message = "this field is required")
+    @NotBlank(message = "La sinopsis es obligatoria")
     private String synopsis;
 
     private List<Long> functionListId;

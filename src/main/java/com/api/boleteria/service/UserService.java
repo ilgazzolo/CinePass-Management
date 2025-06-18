@@ -28,7 +28,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+/**
+ * Servicio para gestionar operaciones relacionadas con Usuarios.
+ */
 @Service
 @AllArgsConstructor
 public class UserService implements UserDetailsService {
@@ -39,12 +41,11 @@ public class UserService implements UserDetailsService {
 
     private final ITicketRepository ticketRepository;
 
-    private final AuthenticationManager authManager;
 
     /**
      * crea un nuevo usuario
-     * @param req RegisterRequest del nuevo usuario
-     * @returs userDetail
+     * @param req DTO con la informacion del nuevo usuario
+     * @returs userDetail con los datos del usuario creado
      */
     public UserDetailDTO save (RegisterRequestDTO req){
 
@@ -70,7 +71,7 @@ public class UserService implements UserDetailsService {
 
     /**
      * muestra todos los usuarios
-     * @return List de UserList
+     * @return List de UserList con la informacion de los usuarios guardados
      */
     public List<UserListDTO> findAllUsers (){
         return userRepository.findAll()
@@ -87,8 +88,8 @@ public class UserService implements UserDetailsService {
 
     /**
      * muestra suarios por id
-     * @param id de usuario a mostrar
-     * @return UserDetail
+     * @param id ID de usuario a mostrar
+     * @return UserDetail con la informacion del usuario encontrado
      */
     public UserDetailDTO findById(Long id){
         User user = userRepository.findById(id)
@@ -106,8 +107,8 @@ public class UserService implements UserDetailsService {
 
     /**
      * muetra usuarios por nombre
-     * @param username de usuario a mostrar
-     * @return UserDetail
+     * @param username nombre de usuario a mostrar
+     * @return UserDetail con la informacion del usuario encontrado
      */
     public UserDetailDTO findByUsername(String username) {
         User user = userRepository.findByUsername(username)
@@ -126,8 +127,8 @@ public class UserService implements UserDetailsService {
 
     /**
      * actualizacion de usuario
-     * @param req usuario con cambios realizados
-     * @return UserDetail
+     * @param req DTO del usuario con cambios realizados
+     * @return UserDetail con la informacion actualizada del usuario especificado
      */
     public UserDetailDTO update(RegisterRequestDTO req) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();

@@ -1,7 +1,7 @@
 package com.api.boleteria.controller;
 
-import com.api.boleteria.dto.detail.BoletoDetailDTO;
-import com.api.boleteria.dto.request.BoletoRequestDTO;
+import com.api.boleteria.dto.detail.TicketDetailDTO;
+import com.api.boleteria.dto.request.TicketRequestDTO;
 import com.api.boleteria.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,32 +12,32 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/boletos")
+@RequestMapping("/api/tickets")
 @RequiredArgsConstructor
-public class BoletoController {
+public class TicketController {
 
     private final TicketService ticketService;
 
 
     @PreAuthorize("hasRole('CLIENT')")
     @PostMapping("/comprar")
-    public ResponseEntity<BoletoDetailDTO> comprarBoleto(@RequestBody @Valid BoletoRequestDTO request) {
-        BoletoDetailDTO boleto = ticketService.create(request);
+    public ResponseEntity<TicketDetailDTO> buyTicket(@RequestBody @Valid TicketRequestDTO request) {
+        TicketDetailDTO boleto = ticketService.create(request);
         return ResponseEntity.ok(boleto);
     }
 
 
     @PreAuthorize("hasRole('CLIENT')")
     @GetMapping
-    public ResponseEntity<List<BoletoDetailDTO>> getMisBoletos() {
-        List<BoletoDetailDTO> boletos = ticketService.getBoletosDelUsuarioLogueado();
+    public ResponseEntity<List<TicketDetailDTO>> getTickets() {
+        List<TicketDetailDTO> boletos = ticketService.findTicketsFromAuthenticatedUser();
         return ResponseEntity.ok(boletos);
     }
 
     @PreAuthorize("hasRole('CLIENT')")
     @GetMapping("/{id}")
-    public ResponseEntity<BoletoDetailDTO> getBoletoById(@PathVariable Long id) {
-        BoletoDetailDTO dto = ticketService.getBoletoById(id);
+    public ResponseEntity<TicketDetailDTO> getTicketById(@PathVariable Long id) {
+        TicketDetailDTO dto = ticketService.findTicketById(id);
         return ResponseEntity.ok(dto);
     }
 

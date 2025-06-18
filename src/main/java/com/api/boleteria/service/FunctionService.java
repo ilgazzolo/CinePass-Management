@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
+/**
+ * Servicio para gestionar operaciones relacionadas con Funciones.
+ */
 @Service
 @RequiredArgsConstructor
 public class FunctionService {
@@ -31,15 +33,17 @@ public class FunctionService {
     private final IMovieRepository movieRepo;
 
     /**
-     * crea una nueva funcion
-     * @param entity FunctionRequest de la nueva funcion
-     * @return Function Detail
+     * Crea una nueva funcion, validando que no exista una funcion en la misma sala en el horario especificado.
+     *
+     * Verifica que no se creen funciones con fecha de inicio mayor a dos años.
+     * @param entity FunctionRequest con la informacion de la nueva funcion
+     * @return Function Detail con la informacion de la funcion creada
      */
     public FunctionDetailDTO create (FunctionRequestDTO entity){
         //  valida los campos ingresados
         FunctionValidator.validate(entity);
 
-        //valida que no haya una funcion en esa sala en esa fecha
+        //valida que no haya una funcion en esa sala en esa date
         if (functionRepo.existsByCinemaIdAndDate(entity.getCinemaId(), entity.getDate())) {
             throw new BadRequestException("Ya existe una función para esa sala en ese horario.");
         }
@@ -85,7 +89,7 @@ public class FunctionService {
 
     /**
      * muestra todas las funciones
-     * @return Lista de FunctionList
+     * @return Lista de FunctionList con la informacion de las funciones encontradas
      */
     public List<FunctionListDTO> findAll(){
         return functionRepo.findAll().stream()
@@ -102,9 +106,9 @@ public class FunctionService {
 
 
     /**
-     * muestra funciones por id
+     * obtiene las funciones segun un ID especificado
      * @param id de la funcion a buscar
-     * @return
+     * @return Function Detail con la informacion de la funcion encontrada
      */
     public FunctionDetailDTO findById(Long id){
         Function function = functionRepo.findById(id)
@@ -123,8 +127,8 @@ public class FunctionService {
     /**
      * actualiza una funcion segun el ID especificado
      * @param id de la funcion a modificar
-     * @param entity objeto con los campos modificados
-     * @return Function Detail
+     * @param entity objeto DTO con los campos modificados
+     * @return Function Detail con la informacion de la funcion actualizada
      */
     public FunctionDetailDTO updateById (Long id, FunctionRequestDTO entity){
         FunctionValidator.validate(entity);
@@ -168,7 +172,7 @@ public class FunctionService {
     /**
      * muestra solo las proximas funciones de una pelicula segun su ID
      * @param movieId id de la pelicula que se desea mostrar sus funciones
-     * @return Lista de FunctionListDTO
+     * @return Lista de FunctionListDTO con la informacion de las funciones encontradas
      */
     public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
         List<Function> funciones = functionRepo.findByMovieIdAndAvailableCapacityGreaterThanAndDateAfter(
@@ -191,9 +195,9 @@ public class FunctionService {
     /**
      * muestra las funciones segun un tipo de pantalla especificado
      * @param screenType tipo de pantalla especificado
-     * @return Lista de Funciones
+     * @return Lista de Funciones encontradas
      */
-    public List<FunctionListDTO> findByTipoPantalla(ScreenType screenType) {
+    public List<FunctionListDTO> findByScreenType(ScreenType screenType) {
         if (screenType == null) {
             throw new BadRequestException("Debe especificar un tipo de pantalla.");
         }

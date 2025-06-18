@@ -11,13 +11,13 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class FunctionRequestDTO {
-    @NotNull(message = "this field is required")
-    @Future(message = "the date cannot be passed")
+    @NotNull(message = "La fecha de la funcion es obligatoria")
+    @Future(message = "la funcion no puede tener una fecha anterior a la actual")
     private LocalDateTime date;
 
-    @NotNull(message = "this field is required")
+    @NotNull(message = "La sala es obligatoria")
     private Long cinemaId;
 
-    @NotNull(message = "this field is required")
+    @NotNull(message = "La pelicula es obligatoria")
     private Long movieId;
 }

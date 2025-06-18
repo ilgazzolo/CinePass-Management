@@ -23,7 +23,7 @@ public class CinemaRequestDTO {
     @Min(value = 1, message = "La capacidad mínima es 1")
     private Integer capacity;
 
-    @NotNull(message = "El campo habilitada es obligatorio")
+    @NotNull(message = "El campo es obligatorio")
     private Boolean habilitada;
 
 }

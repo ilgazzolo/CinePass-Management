@@ -46,8 +46,8 @@ public class CinemaController {
         return ResponseEntity.ok(cinemaService.findById(id));
     }
 
-    @GetMapping("/TipoPantalla/{tipoPantalla}")
-    public ResponseEntity<List<CinemaListDTO>> getByTipoPantalla(@PathVariable ScreenType screenType){
+    @GetMapping("/ScreenType/{screenType}")
+    public ResponseEntity<List<CinemaListDTO>> getByScreenType(@PathVariable ScreenType screenType){
         List<CinemaListDTO> lista = cinemaService.findByScreenType(screenType);
 
         if(lista.isEmpty()){
@@ -56,8 +56,8 @@ public class CinemaController {
         return ResponseEntity.ok(lista);
     }
 
-    @GetMapping("/Habilitada/{habilitada}")
-    public ResponseEntity<List<CinemaListDTO>> getByHabilitada(@PathVariable boolean habilitada){
+    @GetMapping("/Enabled/{enabled}")
+    public ResponseEntity<List<CinemaListDTO>> getByEnabledRoom(@PathVariable boolean habilitada){
         List<CinemaListDTO> lista = cinemaService.findByEnabledRoom(habilitada);
 
         if(lista.isEmpty()){
@@ -66,8 +66,8 @@ public class CinemaController {
         return ResponseEntity.ok(lista);
     }
 
-    @GetMapping("/Capacidad/{capacidad}")
-    public ResponseEntity<List<CinemaListDTO>> getByCapacidad(@PathVariable Integer capacidad){
+    @GetMapping("/Capacity/{capacity}")
+    public ResponseEntity<List<CinemaListDTO>> getBySeatCapacity(@PathVariable Integer capacidad){
         List<CinemaListDTO> lista = cinemaService.findBySeatCapacity(capacidad);
 
         if(lista.isEmpty()){

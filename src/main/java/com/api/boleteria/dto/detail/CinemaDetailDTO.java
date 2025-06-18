@@ -4,9 +4,9 @@ import com.api.boleteria.model.ScreenType;
 
 public record CinemaDetailDTO (
         Long id,
-        String nombre,
+        String name,
         ScreenType screenType,
         Boolean atmos,
-        Integer capacity,
-        Boolean habilitada
+        Integer seatCapacity,
+        Boolean enabled
 ){}

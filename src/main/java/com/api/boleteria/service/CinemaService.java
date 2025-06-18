@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Servicio para gestionar operaciones relacionadas con Salas de Cine.
+ */
 @Service
 @RequiredArgsConstructor
 public class CinemaService {
@@ -24,8 +27,8 @@ public class CinemaService {
 
     /**
      * crea un nueva sala
-     * @param entity CinemaRequests de la nueva sala
-     * @return Cinema Detail
+     * @param entity DTO con la informacion de la nueva sala
+     * @return Cinema Detail con la informacion de la sala creada
      */
     public CinemaDetailDTO save(CinemaRequestDTO entity){
         Cinema cinema = new Cinema();
@@ -48,6 +51,10 @@ public class CinemaService {
     }
 
 
+    /**
+     * obtiene todas las salas cargadas
+     * @return lista de CinemaList con la informacion de las salas encontradas
+     */
     public List<CinemaListDTO> findAll(){
         return cinemaRepository.findAll().stream().
                 map(c -> new CinemaListDTO(
@@ -59,6 +66,12 @@ public class CinemaService {
                 .toList();
     }
 
+
+    /**
+     * obtiene una sala segun un ID especificado
+     * @param id ID de la sala a buscar
+     * @return SalaDetail con la informacion de la sala encontrada
+     */
     public CinemaDetailDTO findById(Long id){
         Cinema cinema = cinemaRepository.findById(id).
                 orElseThrow(() -> new NotFoundException("La sala con ID: "+id+" no fue encontrada. "));
@@ -73,7 +86,12 @@ public class CinemaService {
         );
     }
 
-    
+
+    /**
+     * mustra todas las salas con un tipo de pantlla en especifico
+     * @param screenType tipo de pantalla de la sala a mostrar
+     * @return lista de CinemaList con la informacion de las salas encontradas
+     */
     public List<CinemaListDTO> findByScreenType(ScreenType screenType){
         return cinemaRepository.findByScreenType(screenType).stream()
                 .map(p->new CinemaListDTO(
@@ -86,6 +104,11 @@ public class CinemaService {
     }
 
 
+    /**
+     * obtiene las salas segun un estado especificado
+     * @param enabled estado de las salas a mostrar
+     * @return CinemaList con la informacion de las salas encontradas
+     */
     public List<CinemaListDTO> findByEnabledRoom(boolean enabled){
         return cinemaRepository.findByEnabled(enabled).stream()
                 .map(c->new CinemaListDTO(
@@ -98,6 +121,11 @@ public class CinemaService {
     }
 
 
+    /**
+     * obtiene las salas cuya capacidad de asientos sea mayor al valor recibido como parámetro.
+     * @param seatCapacity capacidad de asientos especificada
+     * @return CinemaList con la informacion de las salas encontradas
+     */
     public List<CinemaListDTO> findBySeatCapacity(Integer seatCapacity){
         return cinemaRepository.findBySeatCapacityGreaterThan(0).stream()
                 .map(c->new CinemaListDTO(
@@ -110,6 +138,12 @@ public class CinemaService {
     }
 
 
+    /**
+     * actualiza una sala, segun un ID especificado
+     * @param id ID de la sala a actualizar
+     * @param entity DTO con los cambios realizados
+     * @return CinemaDetail con la informacion de la sala actualizada
+     */
     public CinemaDetailDTO updateById(Long id, CinemaRequestDTO entity){
         return cinemaRepository.findById(id).
                 map(c -> {
@@ -128,6 +162,10 @@ public class CinemaService {
     }
 
 
+    /**
+     * elimina una sala segun un ID especficado
+     * @param id ID de la sala a eliminar
+     */
     public void deleteById (Long id){
         if (!cinemaRepository.existsById(id)){
             throw new NotFoundException("La sala con ID: "+id+" no fue encontrada. ");

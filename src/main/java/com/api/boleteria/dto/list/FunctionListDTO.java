@@ -9,5 +9,5 @@ public record FunctionListDTO(
         LocalTime time,
         Long cinema,
         String movieName,
-        Integer capacidad
+        Integer availableCapacity
 ) {}

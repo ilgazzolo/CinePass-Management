@@ -57,16 +57,16 @@ public class FunctionController {
 
     @GetMapping("/disponibles/{movieId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<FunctionListDTO>> getFuncionesDisponiblesPorPelicula(@PathVariable Long movieId) {
+    public ResponseEntity<List<FunctionListDTO>> getAvailableFunctionsPerMovie(@PathVariable Long movieId) {
         List<FunctionListDTO> funciones = functionService.findByMovieIdAndAvailableCapacity(movieId);
         return ResponseEntity.ok(funciones);
     }
 
     @GetMapping("/tipo-pantalla/{tipoPantalla}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<FunctionListDTO>> getFuncionesPorTipoPantalla(@PathVariable ScreenType screenType) {
+    public ResponseEntity<List<FunctionListDTO>> getByScreenType(@PathVariable ScreenType screenType) {
 
-        List<FunctionListDTO> funciones = functionService.findByTipoPantalla(screenType);
+        List<FunctionListDTO> funciones = functionService.findByScreenType(screenType);
         return ResponseEntity.ok(funciones);
     }
 
