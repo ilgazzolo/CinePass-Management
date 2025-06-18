@@ -31,8 +31,11 @@ public class SecurityConfig {
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // login público
-                        .anyRequest().authenticated())               // resto autenticado
+                        .requestMatchers("/api/cinema/**").hasAnyRole("ADMIN", "CLIENT")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/client/**").hasRole("CLIENT")
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated())
 
                 .addFilterBefore(jwtAuthFilter(), // 5. Insertar filtro JWT
                         UsernamePasswordAuthenticationFilter.class);

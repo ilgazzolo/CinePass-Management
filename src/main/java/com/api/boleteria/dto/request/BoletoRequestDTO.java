@@ -4,7 +4,5 @@ import jakarta.validation.constraints.Positive;
 
 public record BoletoRequestDTO(
         @Positive
-        Long usuarioId,
-        @Positive
         Long funcionId
 ) {}

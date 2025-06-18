@@ -55,21 +55,6 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    /// inicio de sesion
-    /* public UserDetailDTO login(String username, String password) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadRequestException("Credenciales inválidas");
-        }
-
-
-        return new UserDetailDTO(user.getId(), user.getUsername(), user.getRole());
-    }
-
-     */
-
 
     ///  ver todos los usuarios
     public List<UserListDTO> findAllUsers (){

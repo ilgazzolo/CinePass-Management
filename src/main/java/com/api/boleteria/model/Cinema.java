@@ -20,7 +20,20 @@ public class Cinema {
     private Long id; // es el número de sala
 
     @Column(nullable = false)
+    private String nombre;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TipoPantalla tipoPantalla;
+
+    @Column(nullable = false)
+    private Boolean atmos;
+
+    @Column(nullable = false)
     private Integer capacity;
+
+    @Column(nullable = false)
+    private Boolean habilitada;
 
     @OneToMany(mappedBy = "cinema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Function> functionList = new ArrayList<>();

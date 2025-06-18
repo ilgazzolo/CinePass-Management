@@ -1,5 +1,7 @@
 package com.api.boleteria.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,9 +24,13 @@ public class Boleto {
     @Column(nullable = false)
     private LocalDateTime fechaCompra;
 
-    @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    @JsonBackReference
     private User user;
+
 
     @ManyToOne
     @JoinColumn(name = "funcion_id", nullable = false)

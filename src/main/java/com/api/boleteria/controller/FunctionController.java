@@ -17,7 +17,7 @@ import java.util.List;
 public class FunctionController {
     private final FunctionService functionService;
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<FunctionDetailDTO> create (@Valid @RequestBody FunctionRequestDTO entity){
         return ResponseEntity.ok(functionService.create(entity));
     }
@@ -46,4 +46,12 @@ public class FunctionController {
     public ResponseEntity<FunctionDetailDTO> update(@PathVariable Long id, @Valid @RequestBody FunctionRequestDTO entity){
         return ResponseEntity.ok(functionService.updateById(id, entity));
     }
+
+    @GetMapping("/disponibles/{movieId}")
+    public ResponseEntity<List<FunctionListDTO>> getFuncionesDisponiblesPorPelicula(@PathVariable Long movieId) {
+        List<FunctionListDTO> funciones = functionService.findAvailableByMovieId(movieId);
+        return ResponseEntity.ok(funciones);
+    }
+
+
 }

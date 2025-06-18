@@ -7,6 +7,7 @@ import com.api.boleteria.dto.request.CinemaRequestDTO;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Cinema;
 import com.api.boleteria.model.Function;
+import com.api.boleteria.model.TipoPantalla;
 import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,15 +32,22 @@ public class CinemaService {
 
         return new CinemaDetailDTO(
                 saved.getId(),
-                saved.getCapacity()
+                saved.getNombre(),
+                saved.getTipoPantalla(),
+                saved.getAtmos(),
+                saved.getCapacity(),
+                saved.getHabilitada()
         );
     }
+
 
     public List<CinemaListDTO> findAll(){
         return cinemaRepository.findAll().stream().
                 map(c -> new CinemaListDTO(
                         c.getId(),
-                        c.getCapacity()
+                        c.getNombre(),
+                        c.getCapacity(),
+                        c.getHabilitada()
                 ))
                 .toList();
     }
@@ -50,7 +58,11 @@ public class CinemaService {
 
         return new CinemaDetailDTO(
                 cinema.getId(),
-                cinema.getCapacity()
+                cinema.getNombre(),
+                cinema.getTipoPantalla(),
+                cinema.getAtmos(),
+                cinema.getCapacity(),
+                cinema.getHabilitada()
         );
     }
 
@@ -61,8 +73,11 @@ public class CinemaService {
                     Cinema created = cinemaRepository.save(c);
                     return new CinemaDetailDTO(
                             created.getId(),
-                            created.getCapacity()
-
+                            created.getNombre(),
+                            created.getTipoPantalla(),
+                            created.getAtmos(),
+                            created.getCapacity(),
+                            created.getHabilitada()
                     );
                 }).
                 orElseThrow(() -> new NotFoundException("doesn't exist cinema ID: "+id));
