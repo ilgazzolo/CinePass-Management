@@ -11,24 +11,23 @@ import com.api.boleteria.repository.IFunctionRepository;
 import com.api.boleteria.repository.IMovieRepository;
 import com.api.boleteria.validators.MovieValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MovieService {
 
-    @Autowired
-    private IMovieRepository movieRepository;
+    private final IMovieRepository movieRepository;
 
-    @Autowired
-    private IFunctionRepository functionRepository;
+    private final IFunctionRepository functionRepository;
 
+    /**
+     * crea una nueva pelicula
+     * @param req MovieRequets del nuevo usuario
+     * @return MovieDetail
+     */
     public MovieDetailDTO create(MovieRequestDTO req) {
         // Validación de campos del DTO
         MovieValidator.CamposValidator(req);
@@ -38,18 +37,15 @@ public class MovieService {
             throw new BadRequestException("Ya existe una película con el título: " + req.getTitle());
         }
 
-
-        // Crear nueva entidad Movie
         Movie movie = new Movie();
         movie.setTitle(req.getTitle().trim());
         movie.setDuration(req.getDuration());
-        movie.setGenre(req.getGenre());
+        movie.setMovieGenre(req.getGenre());
         movie.setDirector(req.getDirector());
-        movie.setRating(req.getRating());
+        movie.setAgeRating(req.getRating());
         movie.setSynopsis(req.getSynopsis());
         //movie.setFunctionList(functionList);
 
-        // Guardar
         Movie saved = movieRepository.save(movie);
 
         // Devolver DTO
@@ -57,11 +53,11 @@ public class MovieService {
                 saved.getId(),
                 saved.getTitle(),
                 saved.getDuration(),
-                saved.getGenre(),
+                saved.getMovieGenre(),
                 saved.getDirector(),
-                saved.getRating(),
+                saved.getAgeRating(),
                 saved.getSynopsis(),
-                saved.getFunctionList().stream()
+                saved.getFunctions().stream()
                         .map(Function::getId)
                         .toList()
                 );
@@ -69,21 +65,21 @@ public class MovieService {
     }
 
 
-
-    public boolean movieExistsByTitle(String title) {
+    public boolean existsByTittle(String title) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("El título no puede estar vacío.");
         }
         return movieRepository.existsByTitle(title.trim());
     }
 
-    public List<MovieListDTO> findByGenre(String genre) {
-        return movieRepository.findByGenre(genre).stream()
+
+    public List<MovieListDTO> findByMovieGenre(String genre) {
+        return movieRepository.findByMovieGenre(genre).stream()
                 .map(movie -> new MovieListDTO(
                         movie.getId(),
                         movie.getTitle(),
                         movie.getDuration(),
-                        movie.getGenre(),
+                        movie.getMovieGenre(),
                         movie.getDirector()
                 ))
                 .toList();
@@ -96,42 +92,45 @@ public class MovieService {
                         movie.getId(),
                         movie.getTitle(),
                         movie.getDuration(),
-                        movie.getGenre(),
+                        movie.getMovieGenre(),
                         movie.getDirector()
                 ))
                 .toList();
     }
 
+
     public MovieDetailDTO findById(Long id){
         Movie m = movieRepository.findById(id)
-                .orElseThrow(()-> new NotFoundException("doesn't exist movie ID: "+id));
+                .orElseThrow(()-> new NotFoundException("La pelicula con ID: "+id+" no fue encontrada."));
+
         return new MovieDetailDTO(
                 m.getId(),
                 m.getTitle(),
                 m.getDuration(),
-                m.getGenre(),
+                m.getMovieGenre(),
                 m.getDirector(),
-                m.getRating(),
+                m.getAgeRating(),
                 m.getSynopsis(),
-                m.getFunctionList().stream()
+                m.getFunctions().stream()
                         .map(Function::getId)
                         .toList()
         );
     }
+
 
     public MovieDetailDTO updateById(Long id, MovieRequestDTO entity){
         return movieRepository.findById(id).
                 map(movie -> {
                     movie.setTitle(entity.getTitle());
                     movie.setDuration(entity.getDuration());
-                    movie.setGenre(entity.getGenre());
+                    movie.setMovieGenre(entity.getGenre());
                     movie.setDirector(entity.getDirector());
-                    movie.setRating(entity.getRating());
+                    movie.setAgeRating(entity.getRating());
                     movie.setSynopsis(entity.getSynopsis());
 
-                    List<Function>functions = functionRepository.findAllById(entity.getFunctionListId());
+                    List<Function> functions = functionRepository.findAllById(entity.getFunctionListId());
 
-                    movie.setFunctionList(functions);
+                    movie.setFunctions(functions);
 
                     Movie update = movieRepository.save(movie);
 
@@ -139,21 +138,22 @@ public class MovieService {
                             update.getId(),
                             update.getTitle(),
                             update.getDuration(),
-                            update.getGenre(),
+                            update.getMovieGenre(),
                             update.getDirector(),
-                            update.getRating(),
+                            update.getAgeRating(),
                             update.getSynopsis(),
-                            update.getFunctionList().stream()
+                            update.getFunctions().stream()
                                     .map(Function::getId)
                                     .toList()
                     );
                 })
-                .orElseThrow(()-> new NotFoundException("doesn't exist movie ID: "+id));
+                .orElseThrow(()-> new NotFoundException("La pelicula con ID: "+id+" no fue encontrada."));
     }
+
 
     public void deleteById(Long id){
         if(!movieRepository.existsById(id)){
-            throw new NotFoundException("doesn't exist movie ID: "+id);
+            throw new NotFoundException("La pelicula con ID: "+id+" no fue encontrada.");
         }
         movieRepository.deleteById(id);
     }

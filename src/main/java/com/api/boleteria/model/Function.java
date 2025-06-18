@@ -1,11 +1,12 @@
 package com.api.boleteria.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Past;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Data
@@ -19,11 +20,10 @@ public class Function {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDateTime date;
+    private LocalDateTime showtime;
 
     @Column(nullable = false)
-    private Integer capacidadDisponible;
-
+    private Integer availableCapacity;
 
     @ManyToOne
     @JoinColumn(name = "cinema_id", nullable = false)
@@ -33,8 +33,8 @@ public class Function {
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
 
-    @OneToMany(mappedBy = "funcion", cascade = CascadeType.ALL)
-    private List<Boleto> boletos = new ArrayList<>();
+    @OneToMany(mappedBy = "function", cascade = CascadeType.ALL)
+    private Set<Ticket> tickets = new HashSet<>();
 
 
 

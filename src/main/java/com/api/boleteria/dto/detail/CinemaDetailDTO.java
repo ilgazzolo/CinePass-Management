@@ -1,11 +1,11 @@
 package com.api.boleteria.dto.detail;
 
-import com.api.boleteria.model.TipoPantalla;
+import com.api.boleteria.model.ScreenType;
 
 public record CinemaDetailDTO (
         Long id,
         String nombre,
-        TipoPantalla tipoPantalla,
+        ScreenType screenType,
         Boolean atmos,
         Integer capacity,
         Boolean habilitada

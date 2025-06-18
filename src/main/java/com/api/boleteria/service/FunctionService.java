@@ -6,7 +6,7 @@ import com.api.boleteria.dto.request.FunctionRequestDTO;
 import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Cinema;
-import com.api.boleteria.model.TipoPantalla;
+import com.api.boleteria.model.ScreenType;
 import com.api.boleteria.model.Function;
 import com.api.boleteria.model.Movie;
 import com.api.boleteria.repository.ICinemaRepository;
@@ -23,10 +23,18 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FunctionService {
+
     private final IFunctionRepository functionRepo;
+
     private final ICinemaRepository cinemaRepo;
+
     private final IMovieRepository movieRepo;
 
+    /**
+     * crea una nueva funcion
+     * @param entity FunctionRequest de la nueva funcion
+     * @return Function Detail
+     */
     public FunctionDetailDTO create (FunctionRequestDTO entity){
         //  valida los campos ingresados
         FunctionValidator.validate(entity);
@@ -43,8 +51,8 @@ public class FunctionService {
 
         //  validaciones de sala
         Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow(() -> new NotFoundException("No existe la sala ingresada."));
-        if(!cinema.getHabilitada()){
-            throw new BadRequestException("La sala" + cinema.getNombre() + "ingresar no esta habilitada");
+        if(!cinema.getEnabled()){
+            throw new BadRequestException("La sala" + cinema.getName() + "ingresar no esta habilitada");
         }
 
         // validaciones pelicula
@@ -55,125 +63,155 @@ public class FunctionService {
         FunctionValidator.validateHorario(entity, movie, funcionesEnSala);
 
         Function function = new Function();
-        function.setDate(entity.getDate());
+        function.setShowtime(entity.getDate());
         function.setCinema(cinema);
-        function.setCapacidadDisponible(cinema.getCapacity());
+        function.setAvailableCapacity(cinema.getSeatCapacity());
         function.setMovie(movie);
 
 
         Function saved = functionRepo.save(function);
-        movie.getFunctionList().add(saved);
-        cinema.getFunctionList().add(saved);
+        movie.getFunctions().add(saved);
+        cinema.getFunctions().add(saved);
 
         return new FunctionDetailDTO(
                 saved.getId(),
-                saved.getDate().format(DateTimeFormatter.ISO_DATE_TIME),
-                cinema.getId(),
+                saved.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
+                cinema.getRoomId(),
                 movie.getId(),
                 movie.getTitle()
         );
     }
 
-    ///  ver todas las funciones
+
+    /**
+     * muestra todas las funciones
+     * @return Lista de FunctionList
+     */
     public List<FunctionListDTO> findAll(){
         return functionRepo.findAll().stream()
                 .map(f -> new FunctionListDTO(
                         f.getId(),
-                        f.getDate().toLocalDate(),
-                        f.getDate().toLocalTime(),
-                        f.getCinema().getId(),
+                        f.getShowtime().toLocalDate(),
+                        f.getShowtime().toLocalTime(),
+                        f.getCinema().getRoomId(),
                         f.getMovie().getTitle(),
-                        f.getCapacidadDisponible()
+                        f.getAvailableCapacity()
                 ))
                 .toList();
     }
 
-    ///  ver una funcion por id
+
+    /**
+     * muestra funciones por id
+     * @param id de la funcion a buscar
+     * @return
+     */
     public FunctionDetailDTO findById(Long id){
         Function function = functionRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("crear exception 'NotFoundException' "+id));
+                .orElseThrow(() -> new NotFoundException("La funcion con ID: " + id + " no fue encontrada."));
+
         return new FunctionDetailDTO(
                 function.getId(),
-                function.getDate().format(DateTimeFormatter.ISO_DATE_TIME),
-                function.getCinema().getId(),
+                function.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
+                function.getCinema().getRoomId(),
                 function.getMovie().getId(),
                 function.getMovie().getTitle()
         );
     }
 
-    ///  actualizar una funcion por id
+
+    /**
+     * actualiza una funcion segun el ID especificado
+     * @param id de la funcion a modificar
+     * @param entity objeto con los campos modificados
+     * @return Function Detail
+     */
     public FunctionDetailDTO updateById (Long id, FunctionRequestDTO entity){
         FunctionValidator.validate(entity);
         return functionRepo.findById(id)
                 .map(f -> {
-                    f.setDate(entity.getDate());
+                    f.setShowtime(entity.getDate());
 
                     Cinema cinema = cinemaRepo.findById(entity.getCinemaId())
-                            .orElseThrow(() -> new NotFoundException("Cinema not found"));
+                            .orElseThrow(() -> new NotFoundException("La sala no fue encontrada."));
                     f.setCinema(cinema);
 
                     Movie movie = movieRepo.findById(entity.getMovieId())
-                            .orElseThrow(() -> new NotFoundException("Movie not found"));
+                            .orElseThrow(() -> new NotFoundException("La pelicula no fue encontrada."));
                     f.setMovie(movie);
 
                     Function created = functionRepo.save(f);
                     return new FunctionDetailDTO(
                             created.getId(),
-                            created.getDate().format(DateTimeFormatter.ISO_DATE_TIME),
-                            created.getCinema().getId(),
+                            created.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
+                            created.getCinema().getRoomId(),
                             created.getMovie().getId(),
                             created.getMovie().getTitle()
                     );
                 })
-                .orElseThrow(() -> new NotFoundException("not found ID function: " + id));
+                .orElseThrow(() -> new NotFoundException("La funcion con ID: "+id+" no fue encontrada."));
     }
 
-    ///  eliminar una funcion por id
+
+    /**
+     * elimina una funcion segun un ID especificado
+     * @param id de la funcion a eliminar
+     */
     public void deleteById (Long id){
         if (!functionRepo.existsById(id)){
-            throw new NotFoundException("not found ID function: "+id);
+            throw new NotFoundException("La funcion con ID: "+id+" no fue encontrada.");
         }
         functionRepo.deleteById(id);
     }
 
-    ///  filtrar funciones por pelicula
-    public List<FunctionListDTO> findAvailableByMovieId(Long movieId) {
-        List<Function> funciones = functionRepo.findByMovieIdAndCapacidadDisponibleGreaterThanAndDateAfter(
+
+    /**
+     * muestra solo las proximas funciones de una pelicula segun su ID
+     * @param movieId id de la pelicula que se desea mostrar sus funciones
+     * @return Lista de FunctionListDTO
+     */
+    public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
+        List<Function> funciones = functionRepo.findByMovieIdAndAvailableCapacityGreaterThanAndDateAfter(
                 movieId, 0, LocalDateTime.now()
         );
 
         return funciones.stream()
                 .map(f -> new FunctionListDTO(
                         f.getId(),
-                        f.getDate().toLocalDate(),
-                        f.getDate().toLocalTime(),
-                        f.getCinema().getId(),
+                        f.getShowtime().toLocalDate(),
+                        f.getShowtime().toLocalTime(),
+                        f.getCinema().getRoomId(),
                         f.getMovie().getTitle(),
-                        f.getCapacidadDisponible()
+                        f.getAvailableCapacity()
                 ))
                 .toList();
     }
 
-    ///  filtrar funciones por tipo pantalla
-    public List<FunctionListDTO> findByTipoPantalla(TipoPantalla tipoPantalla) {
-        if (tipoPantalla == null) {
+
+    /**
+     * muestra las funciones segun un tipo de pantalla especificado
+     * @param screenType tipo de pantalla especificado
+     * @return Lista de Funciones
+     */
+    public List<FunctionListDTO> findByTipoPantalla(ScreenType screenType) {
+        if (screenType == null) {
             throw new BadRequestException("Debe especificar un tipo de pantalla.");
         }
 
-        List<Function> funciones = functionRepo.findByCinema_TipoPantalla(tipoPantalla);
+        List<Function> funciones = functionRepo.findByCinema_ScreenType(screenType);
 
         if (funciones.isEmpty()) {
-            throw new NotFoundException("No hay funciones para el tipo de pantalla: " + tipoPantalla.name());
+            throw new NotFoundException("No hay funciones para el tipo de pantalla: " + screenType.name());
         }
 
         return funciones.stream()
                 .map(f -> new FunctionListDTO(
                         f.getId(),
-                        f.getDate().toLocalDate(),
-                        f.getDate().toLocalTime(),
-                        f.getCinema().getId(),
+                        f.getShowtime().toLocalDate(),
+                        f.getShowtime().toLocalTime(),
+                        f.getCinema().getRoomId(),
                         f.getMovie().getTitle(),
-                        f.getCapacidadDisponible()
+                        f.getAvailableCapacity()
                 ))
                 .toList();
 

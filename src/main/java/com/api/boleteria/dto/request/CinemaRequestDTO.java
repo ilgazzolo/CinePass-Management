@@ -1,6 +1,6 @@
 package com.api.boleteria.dto.request;
 
-import com.api.boleteria.model.TipoPantalla;
+import com.api.boleteria.model.ScreenType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +14,7 @@ public class CinemaRequestDTO {
     private String nombre;
 
     @NotNull(message = "El tipo de pantalla es obligatorio")
-    private TipoPantalla tipoPantalla;
+    private ScreenType screenType;
 
     @NotNull(message = "El campo atmos es obligatorio")
     private Boolean atmos;

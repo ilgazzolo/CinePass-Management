@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -17,24 +17,24 @@ public class Cinema {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // es el número de sala
+    private Long roomId;
 
     @Column(nullable = false)
-    private String nombre;
+    private String name;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private TipoPantalla tipoPantalla;
+    private ScreenType screenType;
 
     @Column(nullable = false)
     private Boolean atmos;
 
     @Column(nullable = false)
-    private Integer capacity;
+    private Integer seatCapacity;
 
     @Column(nullable = false)
-    private Boolean habilitada;
+    private Boolean enabled;
 
     @OneToMany(mappedBy = "cinema", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Function> functionList = new ArrayList<>();
+    private Set<Function> functions = new HashSet<>();
 }

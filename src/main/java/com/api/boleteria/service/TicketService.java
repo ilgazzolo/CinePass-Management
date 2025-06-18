@@ -5,10 +5,10 @@ import com.api.boleteria.dto.request.BoletoRequestDTO;
 import com.api.boleteria.exception.AccesDeniedException;
 import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
-import com.api.boleteria.model.Boleto;
+import com.api.boleteria.model.Ticket;
 import com.api.boleteria.model.Function;
 import com.api.boleteria.model.User;
-import com.api.boleteria.repository.IBoletoRepository;
+import com.api.boleteria.repository.ITicketRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import com.api.boleteria.repository.IUserRepository;
 import com.api.boleteria.validators.BoletoValidator;
@@ -18,22 +18,24 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class BoletoService {
+public class TicketService {
 
-    private final IBoletoRepository boletoRepo;
+    private final ITicketRepository boletoRepo;
+
     private final IUserRepository usuarioRepo;
+
     private final IFunctionRepository functionRepo;
+
     private final IUserRepository userRepo;
 
-    private static final double PRECIO_BOLETO = 2500.0; // Precio fijo para todos
+    private static final double PRECIO_BOLETO = 2500.0;
 
+    
     public BoletoDetailDTO create(BoletoRequestDTO dto) {
         BoletoValidator.validarCampos(dto);
 
@@ -47,32 +49,32 @@ public class BoletoService {
         Function funcion = functionRepo.findById(dto.funcionId())
                 .orElseThrow(() -> new NotFoundException("Función no encontrada"));
 
-        if (funcion.getCapacidadDisponible() <= 0) {
+        if (funcion.getAvailableCapacity() <= 0) {
             throw new BadRequestException("No hay más entradas disponibles.");
         }
 
-        funcion.setCapacidadDisponible(funcion.getCapacidadDisponible() - 1);
+        funcion.setAvailableCapacity(funcion.getAvailableCapacity() - 1);
         functionRepo.save(funcion);
 
-        Boleto boleto = new Boleto();
-        boleto.setPrecio(PRECIO_BOLETO);
-        boleto.setFechaCompra(LocalDateTime.now());
-        boleto.setUser(user);
-        boleto.setFuncion(funcion);
+        Ticket ticket = new Ticket();
+        ticket.setTicketPrice(PRECIO_BOLETO);
+        ticket.setPurchaseDateTime(LocalDateTime.now());
+        ticket.setUser(user);
+        ticket.setFunction(funcion);
 
-        Boleto saved = boletoRepo.save(boleto);
+        Ticket saved = boletoRepo.save(ticket);
 
         // Agregar boleto al usuario (opcional si tenés cascade)
-        user.getBoletos().add(saved);
+        user.getTickets().add(saved);
         usuarioRepo.save(user);
 
         return new BoletoDetailDTO(
                 saved.getId(),
-                saved.getFechaCompra().toLocalDate().toString(),  // Ej: 2025-06-17
+                saved.getPurchaseDateTime().toLocalDate().toString(),  // Ej: 2025-06-17
                 funcion.getMovie().getTitle(),                    // Título de la película
-                funcion.getCinema().getId(),                      // ID de la sala
-                saved.getFechaCompra().toLocalTime().toString(),  // Ej: 19:45:00
-                saved.getPrecio()
+                funcion.getCinema().getRoomId(),                      // ID de la sala
+                saved.getPurchaseDateTime().toLocalTime().toString(),  // Ej: 19:45:00
+                saved.getTicketPrice()
         );
     }
 
@@ -88,18 +90,18 @@ public class BoletoService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         // Mapear a DTOs
-        return usuario.getBoletos().stream().map(boleto -> {
-            String tituloPelicula = boleto.getFuncion().getMovie().getTitle();
-            Long idSala = boleto.getFuncion().getCinema().getId();
-            String horaCompra = boleto.getFechaCompra().toLocalTime().toString();
+        return usuario.getTickets().stream().map(boleto -> {
+            String tituloPelicula = boleto.getFunction().getMovie().getTitle();
+            Long idSala = boleto.getFunction().getCinema().getRoomId();
+            String horaCompra = boleto.getPurchaseDateTime().toLocalTime().toString();
 
             return new BoletoDetailDTO(
                     boleto.getId(),
-                    boleto.getFechaCompra().toLocalDate().toString(),
+                    boleto.getPurchaseDateTime().toLocalDate().toString(),
                     tituloPelicula,
                     idSala,
                     horaCompra,
-                    boleto.getPrecio()
+                    boleto.getTicketPrice()
             );
         }).toList();
     }
@@ -115,27 +117,27 @@ public class BoletoService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         //  Buscar el boleto
-        Boleto boleto = boletoRepo.findById(idBoleto)
+        Ticket ticket = boletoRepo.findById(idBoleto)
                 .orElseThrow(() -> new NotFoundException("No se encontró el boleto con ID: " + idBoleto));
 
         //  Verificar que el boleto pertenezca al usuario autenticado
-        if (!boleto.getUser().getId().equals(usuario.getId())) {
+        if (!ticket.getUser().getId().equals(usuario.getId())) {
             throw new AccesDeniedException("No tiene permiso para ver este boleto.");
         }
 
         //  Obtener datos necesarios
-        String tituloPelicula = boleto.getFuncion().getMovie().getTitle();
-        Long idSala = boleto.getFuncion().getCinema().getId();
-        String horaCompra = boleto.getFechaCompra().toLocalTime().toString();
+        String tituloPelicula = ticket.getFunction().getMovie().getTitle();
+        Long idSala = ticket.getFunction().getCinema().getRoomId();
+        String horaCompra = ticket.getPurchaseDateTime().toLocalTime().toString();
 
         // Devolver DTO
         return new BoletoDetailDTO(
-                boleto.getId(),
-                boleto.getFechaCompra().toLocalDate().toString(),
+                ticket.getId(),
+                ticket.getPurchaseDateTime().toLocalDate().toString(),
                 tituloPelicula,
                 idSala,
                 horaCompra,
-                boleto.getPrecio()
+                ticket.getTicketPrice()
         );
     }
 

@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -26,19 +28,18 @@ public class Movie {
     private Integer duration;
 
     @Column(nullable = false)
-    private String genre;
+    private String movieGenre;
 
     @Column(nullable = false)
     private String director;
 
     @Column(nullable = false)
-    private String rating;
+    private String ageRating;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String synopsis;
 
-
     @OneToMany
-    private List<Function> functionList = new ArrayList<>();
+    private List<Function> functions = new ArrayList<>();
 
 }

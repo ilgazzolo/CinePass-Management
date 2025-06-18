@@ -34,7 +34,7 @@ public class FunctionValidator {
         LocalDateTime nuevaFin = nuevaInicio.plusMinutes(movie.getDuration());
 
         for (Function f : funcionesEnSala) {
-            LocalDateTime existenteInicio = f.getDate();
+            LocalDateTime existenteInicio = f.getShowtime();
             LocalDateTime existenteFin = existenteInicio.plusMinutes(f.getMovie().getDuration());
 
             boolean seSolapan = nuevaInicio.isBefore(existenteFin) && existenteInicio.isBefore(nuevaFin);

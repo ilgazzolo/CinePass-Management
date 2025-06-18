@@ -3,7 +3,7 @@ package com.api.boleteria.controller;
 import com.api.boleteria.dto.detail.FunctionDetailDTO;
 import com.api.boleteria.dto.list.FunctionListDTO;
 import com.api.boleteria.dto.request.FunctionRequestDTO;
-import com.api.boleteria.model.TipoPantalla;
+import com.api.boleteria.model.ScreenType;
 import com.api.boleteria.service.FunctionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -58,15 +58,15 @@ public class FunctionController {
     @GetMapping("/disponibles/{movieId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getFuncionesDisponiblesPorPelicula(@PathVariable Long movieId) {
-        List<FunctionListDTO> funciones = functionService.findAvailableByMovieId(movieId);
+        List<FunctionListDTO> funciones = functionService.findByMovieIdAndAvailableCapacity(movieId);
         return ResponseEntity.ok(funciones);
     }
 
     @GetMapping("/tipo-pantalla/{tipoPantalla}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<FunctionListDTO>> getFuncionesPorTipoPantalla(@PathVariable TipoPantalla tipoPantalla) {
+    public ResponseEntity<List<FunctionListDTO>> getFuncionesPorTipoPantalla(@PathVariable ScreenType screenType) {
 
-        List<FunctionListDTO> funciones = functionService.findByTipoPantalla(tipoPantalla);
+        List<FunctionListDTO> funciones = functionService.findByTipoPantalla(screenType);
         return ResponseEntity.ok(funciones);
     }
 

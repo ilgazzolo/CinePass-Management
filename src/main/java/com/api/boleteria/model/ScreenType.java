@@ -1,6 +1,6 @@
 package com.api.boleteria.model;
 
-public enum TipoPantalla {
+public enum ScreenType {
     STANDARD,
     IMAX,
     THREE_D,

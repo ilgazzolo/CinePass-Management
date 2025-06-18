@@ -8,7 +8,6 @@ import java.util.List;
 
 @Repository
 public interface IMovieRepository extends JpaRepository<Movie,Long> {
-
     boolean existsByTitle(String title);
-    List<Movie> findByGenre(String genre);
+    List<Movie> findByMovieGenre(String genre);
 }

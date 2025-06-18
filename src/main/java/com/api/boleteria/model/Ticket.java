@@ -1,38 +1,34 @@
 package com.api.boleteria.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "boletos")
+@Table(name = "tickets")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Boleto {
+public class Ticket {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Double precio;
+    private Double ticketPrice;
 
     @Column(nullable = false)
-    private LocalDateTime fechaCompra;
-
-
+    private LocalDateTime purchaseDateTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
-
     @ManyToOne
-    @JoinColumn(name = "funcion_id", nullable = false)
-    private Function funcion;
+    @JoinColumn(name = "function_id", nullable = false)
+    private Function function;
 }
