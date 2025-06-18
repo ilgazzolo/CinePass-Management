@@ -3,6 +3,7 @@ package com.api.boleteria.controller;
 import com.api.boleteria.dto.detail.CinemaDetailDTO;
 import com.api.boleteria.dto.list.CinemaListDTO;
 import com.api.boleteria.dto.request.CinemaRequestDTO;
+import com.api.boleteria.model.TipoPantalla;
 import com.api.boleteria.service.CinemaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,37 @@ public class CinemaController {
     public ResponseEntity<CinemaDetailDTO> getById(@PathVariable Long id){
         return ResponseEntity.ok(cinemaService.findById(id));
     }
+
+    @GetMapping("/TipoPantalla/{tipoPantalla}")
+    public ResponseEntity<List<CinemaListDTO>> getByTipoPantalla(@PathVariable TipoPantalla tipoPantalla){
+        List<CinemaListDTO> lista = cinemaService.findByTipoPantalla(tipoPantalla);
+
+        if(lista.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/Habilitada/{habilitada}")
+    public ResponseEntity<List<CinemaListDTO>> getByHabilitada(@PathVariable boolean habilitada){
+        List<CinemaListDTO> lista = cinemaService.findByHabilitada(habilitada);
+
+        if(lista.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/Capacidad/{capacidad}")
+    public ResponseEntity<List<CinemaListDTO>> getByCapacidad(@PathVariable Integer capacidad){
+        List<CinemaListDTO> lista = cinemaService.findByCapacidad(capacidad);
+
+        if(lista.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(lista);
+    }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

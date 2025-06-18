@@ -6,6 +6,7 @@ import com.api.boleteria.dto.list.CinemaListDTO;
 import com.api.boleteria.dto.request.CinemaRequestDTO;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Cinema;
+import com.api.boleteria.model.TipoPantalla;
 import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,39 @@ public class CinemaService {
                 cinema.getCapacity(),
                 cinema.getHabilitada()
         );
+    }
+
+    public List<CinemaListDTO> findByTipoPantalla(TipoPantalla tipoPantalla){
+        return cinemaRepository.findByTipoPantalla(tipoPantalla).stream()
+                .map(p->new CinemaListDTO(
+                        p.getId(),
+                        p.getNombre(),
+                        p.getCapacity(),
+                        p.getHabilitada()
+                ))
+                .toList();
+    }
+
+    public List<CinemaListDTO> findByHabilitada(boolean habilitada){
+        return cinemaRepository.findByHabilitada(habilitada).stream()
+                .map(c->new CinemaListDTO(
+                        c.getId(),
+                        c.getNombre(),
+                        c.getCapacity(),
+                        c.getHabilitada()
+                ))
+                .toList();
+    }
+
+    public List<CinemaListDTO> findByCapacidad(Integer capacidad){
+        return cinemaRepository.findByCapacidadGreaterThan(0).stream()
+                .map(c->new CinemaListDTO(
+                        c.getId(),
+                        c.getNombre(),
+                        c.getCapacity(),
+                        c.getHabilitada()
+                ))
+                .toList();
     }
 
     public CinemaDetailDTO updateById(Long id, CinemaRequestDTO entity){
