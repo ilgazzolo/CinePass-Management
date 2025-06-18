@@ -6,12 +6,9 @@ import com.api.boleteria.dto.list.CinemaListDTO;
 import com.api.boleteria.dto.request.CinemaRequestDTO;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Cinema;
-import com.api.boleteria.model.Function;
-import com.api.boleteria.model.TipoPantalla;
 import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,7 +23,11 @@ public class CinemaService {
 
     public CinemaDetailDTO save(CinemaRequestDTO entity){
         Cinema cinema = new Cinema();
+        cinema.setNombre(entity.getNombre());
+        cinema.setTipoPantalla(entity.getTipoPantalla());
+        cinema.setAtmos(entity.getAtmos());
         cinema.setCapacity(entity.getCapacity());
+        cinema.setHabilitada(entity.getHabilitada());
 
         Cinema saved = cinemaRepository.save(cinema);
 

@@ -30,6 +30,7 @@ public class MovieController {
 
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<MovieListDTO>> getAll(){
         List<MovieListDTO> movieList = movieService.findAll();
         if (movieList.isEmpty()){
@@ -40,6 +41,7 @@ public class MovieController {
 
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<MovieDetailDTO> getById(@PathVariable Long id){
         return ResponseEntity.ok(movieService.findById(id));
     }

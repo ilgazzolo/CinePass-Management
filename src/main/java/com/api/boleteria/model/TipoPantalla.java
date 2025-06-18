@@ -1,4 +1,4 @@
-package com.api.boleteria.model.Enums;
+package com.api.boleteria.model;
 
 public enum TipoPantalla {
     STANDARD,

@@ -20,6 +20,7 @@ public class BoletoController {
     private final BoletoService boletoService;
 
 
+    @PreAuthorize("hasRole('CLIENT')")
     @PostMapping("/comprar")
     public ResponseEntity<BoletoDetailDTO> comprarBoleto(@RequestBody @Valid BoletoRequestDTO request) {
         BoletoDetailDTO boleto = boletoService.create(request);
@@ -27,10 +28,18 @@ public class BoletoController {
     }
 
 
+    @PreAuthorize("hasRole('CLIENT')")
     @GetMapping
     public ResponseEntity<List<BoletoDetailDTO>> getMisBoletos() {
         List<BoletoDetailDTO> boletos = boletoService.getBoletosDelUsuarioLogueado();
         return ResponseEntity.ok(boletos);
+    }
+
+    @PreAuthorize("hasRole('CLIENT')")
+    @GetMapping("/{id}")
+    public ResponseEntity<BoletoDetailDTO> getBoletoById(@PathVariable Long id) {
+        BoletoDetailDTO dto = boletoService.getBoletoById(id);
+        return ResponseEntity.ok(dto);
     }
 
 }

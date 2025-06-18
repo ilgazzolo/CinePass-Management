@@ -2,6 +2,7 @@ package com.api.boleteria.service;
 
 import com.api.boleteria.dto.detail.BoletoDetailDTO;
 import com.api.boleteria.dto.request.BoletoRequestDTO;
+import com.api.boleteria.exception.AccesDeniedException;
 import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Boleto;
@@ -17,8 +18,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -76,15 +79,15 @@ public class BoletoService {
 
 
     public List<BoletoDetailDTO> getBoletosDelUsuarioLogueado() {
-        // 1) Obtener username del usuario autenticado
+        //  Obtener username del usuario autenticado
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
-        // 2) Buscar el usuario
+        //  Buscar el usuario
         User usuario = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
-        // 3) Mapear a DTOs
+        // Mapear a DTOs
         return usuario.getBoletos().stream().map(boleto -> {
             String tituloPelicula = boleto.getFuncion().getMovie().getTitle();
             Long idSala = boleto.getFuncion().getCinema().getId();
@@ -101,7 +104,40 @@ public class BoletoService {
         }).toList();
     }
 
+    public BoletoDetailDTO getBoletoById(Long idBoleto){
 
+        //  Obtener username del usuario autenticado
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        //  Buscar el usuario
+        User usuario = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        //  Buscar el boleto
+        Boleto boleto = boletoRepo.findById(idBoleto)
+                .orElseThrow(() -> new NotFoundException("No se encontró el boleto con ID: " + idBoleto));
+
+        //  Verificar que el boleto pertenezca al usuario autenticado
+        if (!boleto.getUser().getId().equals(usuario.getId())) {
+            throw new AccesDeniedException("No tiene permiso para ver este boleto.");
+        }
+
+        //  Obtener datos necesarios
+        String tituloPelicula = boleto.getFuncion().getMovie().getTitle();
+        Long idSala = boleto.getFuncion().getCinema().getId();
+        String horaCompra = boleto.getFechaCompra().toLocalTime().toString();
+
+        // Devolver DTO
+        return new BoletoDetailDTO(
+                boleto.getId(),
+                boleto.getFechaCompra().toLocalDate().toString(),
+                tituloPelicula,
+                idSala,
+                horaCompra,
+                boleto.getPrecio()
+        );
+    }
 
 
 

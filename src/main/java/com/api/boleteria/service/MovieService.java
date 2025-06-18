@@ -38,20 +38,6 @@ public class MovieService {
             throw new BadRequestException("Ya existe una película con el título: " + req.getTitle());
         }
 
-        /*             //No es necesario una funcion si o si
-        List<Function> functionList = functionRepository.findAllById(req.getFunctionListId());
-
-        Set<Long> providedIds = new HashSet<>(req.getFunctionListId());
-        Set<Long> foundIds = functionList.stream()
-                .map(Function::getId)
-                .collect(Collectors.toSet());
-
-        providedIds.removeAll(foundIds);
-
-        if (!providedIds.isEmpty()) {
-            throw new NotFoundException("this functions doesn't exist: " + providedIds);
-        }
-        */
 
         // Crear nueva entidad Movie
         Movie movie = new Movie();

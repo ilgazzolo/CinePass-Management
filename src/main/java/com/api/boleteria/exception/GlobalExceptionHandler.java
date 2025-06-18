@@ -33,4 +33,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> GeneralExceptionsHandler(Exception ex){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado: " + ex.getMessage());
     }
+
+    @ExceptionHandler(AccesDeniedException.class)
+    public ResponseEntity<String> AccesDeniedExceptionsHandler(AccesDeniedException ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
 }
