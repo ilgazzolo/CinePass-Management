@@ -13,5 +13,9 @@ public interface IFunctionRepository extends JpaRepository<Function, Long> {
     boolean existsByCinemaIdAndDate(Long cinemaId, LocalDateTime date);
     List<Function> findByCinemaId(Long cinemaId);
     List<Function> findByMovieIdAndAvailableCapacityGreaterThanAndDateAfter(Long movieId, int availableCapacity, LocalDateTime date);
-    List<Function> findByCinema_ScreenType(ScreenType screenType);
+    List<Function> findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
+            ScreenType screenType,
+            int minCapacidad,
+            LocalDateTime fechaActual
+    );
 }

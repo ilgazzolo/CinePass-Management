@@ -56,7 +56,6 @@ public class UserService implements UserDetailsService {
                 req.getEmail(),
                 new BCryptPasswordEncoder().encode(req.getPassword()));
 
-        entity.setPassword(passwordEncoder.encode(entity.getPassword()));
         User saved = userRepository.save(entity);
         return new UserDetailDTO(
                 saved.getId(),
@@ -97,9 +96,9 @@ public class UserService implements UserDetailsService {
         return new UserDetailDTO(
                 user.getId(),
                 user.getName(),
+                user.getSurname(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getPassword(),
                 user.getRole().name()
         );
     }
@@ -197,19 +196,21 @@ public class UserService implements UserDetailsService {
         return new UserDetailDTO(
                 user.getId(),
                 user.getName(),
+                user.getSurname(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getPassword(),
                 user.getRole().name()
         );
     }
 
 
-    public Map<String, String> login(LoginRequestDTO req) {
+    public Map<String, String> login(LoginRequestDTO req, AuthenticationManager authManager) {
+        // 1) Construir token de autenticación
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
         );
 
+        // 2) Generar JWT si éxito
         UserDetails user = (UserDetails) auth.getPrincipal();
         String jwt = JwtUtil.createToken(
                 user.getUsername(),

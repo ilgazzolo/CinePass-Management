@@ -198,10 +198,11 @@ public class FunctionService {
             throw new BadRequestException("Debe especificar un tipo de pantalla.");
         }
 
-        List<Function> funciones = functionRepo.findByCinema_ScreenType(screenType);
+        List<Function> funciones = functionRepo
+                .findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(screenType, 0, LocalDateTime.now());
 
         if (funciones.isEmpty()) {
-            throw new NotFoundException("No hay funciones para el tipo de pantalla: " + screenType.name());
+            throw new NotFoundException("No hay funciones disponibles para el tipo de pantalla: " + screenType.name());
         }
 
         return funciones.stream()
