@@ -27,52 +27,25 @@ public class AuthController {
 
 
     private final AuthenticationManager authManager; // Gestiona la autenticación
-    private final IUserRepository userRepo;
+    private final UserService userService;
 
-    @PostMapping("/login")              // Endpoint POST /api/auth/login
+    @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDTO req) {
-        // 1) Construir token de autenticación
-        UsernamePasswordAuthenticationToken upToken =
-                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword());
-
-        // 2) Autenticar credenciales
-        Authentication auth = authManager.authenticate(upToken);
-
-        // 3) Generar JWT si éxito
-        UserDetails user = (UserDetails) auth.getPrincipal();
-        String jwt = JwtUtil.createToken(user.getUsername(),
-                user.getAuthorities().stream()
-                        .map(a -> a.getAuthority().replace("ROLE_", ""))
-                        .collect(Collectors.toList()));
-
-        // 4) Devolver token
-        return ResponseEntity.ok(Map.of("token", jwt));
+        return ResponseEntity.ok(userService.login(req));
     }
+
 
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequestDTO req) {
         // Validar si username o email ya existen
-        if (userRepo.existsByUsername(req.getUsername())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Usuario o email ya en uso");
+        if (userService.existsByUsername(req.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username ya en uso");
         }
 
-        System.out.println("Password recibido: " + req.getPassword());
-
-        // Crear y guardar nuevo usuario (encriptar password)
-        User nuevo = new User(
-                req.getName(),
-                req.getSurname(),
-                req.getUsername(),
-                req.getEmail(),
-                new BCryptPasswordEncoder().encode(req.getPassword()) // encriptar
-        );
-
-        userRepo.save(nuevo);
+        userService.save(req);
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado con éxito");
     }
 
-
 }
-
