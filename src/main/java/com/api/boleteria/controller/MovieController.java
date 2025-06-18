@@ -60,5 +60,10 @@ public class MovieController {
         return ResponseEntity.ok(movieService.updateById(id, req));
     }
 
+    @GetMapping("/genre/{genre}")
+    public ResponseEntity<List<MovieListDTO>> findByGenre(@PathVariable String genre) {
+        return ResponseEntity.ok(movieService.findByGenre(genre));
+    }
+
 
 }

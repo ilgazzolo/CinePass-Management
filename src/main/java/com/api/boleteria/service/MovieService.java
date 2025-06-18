@@ -77,7 +77,17 @@ public class MovieService {
         return movieRepository.existsByTitle(title.trim());
     }
 
-
+    public List<MovieListDTO> findByGenre(String genre) {
+        return movieRepository.findByGenre(genre).stream()
+                .map(movie -> new MovieListDTO(
+                        movie.getId(),
+                        movie.getTitle(),
+                        movie.getDuration(),
+                        movie.getGenre(),
+                        movie.getDirector()
+                ))
+                .toList();
+    }
 
 
     public List<MovieListDTO> findAll(){
@@ -147,6 +157,11 @@ public class MovieService {
         }
         movieRepository.deleteById(id);
     }
+
+
+
+
+
 }
 
 
