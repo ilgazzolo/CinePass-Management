@@ -1,7 +1,5 @@
 package com.api.boleteria.dto.detail;
 
-
-
 import java.util.List;
 
 public record MovieDetailDTO(
