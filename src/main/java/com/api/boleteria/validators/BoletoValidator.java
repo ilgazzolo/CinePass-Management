@@ -1,4 +1,4 @@
-package com.api.boleteria.validators;
+package com.api.boleteria.CardValidator;
 
 import com.api.boleteria.dto.request.TicketRequestDTO;
 import com.api.boleteria.exception.BadRequestException;

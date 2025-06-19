@@ -8,6 +8,7 @@ import com.api.boleteria.model.Card;
 import com.api.boleteria.model.User;
 import com.api.boleteria.repository.ICardRepository;
 import com.api.boleteria.repository.IUserRepository;
+import com.api.boleteria.validators.CardValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class CardService {
 
     private final ICardRepository cardRepository;
     private final IUserRepository userRepository;
+    private final CardValidator cardValidator;
 
     private static final double MAX_RECHARGE_AMOUNT = 20000.0;
     private static final double MAX_TOTAL_BALANCE = 1000000.0;
@@ -34,28 +36,28 @@ public class CardService {
      * @param dto Datos necesarios para crear la tarjeta.
      * @return DTO con el detalle de la tarjeta creada.
      */
-    public CardDetailDTO save (CardRequestDTO dto) {
+    public CardDetailDTO save(CardRequestDTO dto) {
+        cardValidator.validateCard(dto);
+
         Card card = new Card();
         card.setCardNumber(dto.getCardNumber());
         card.setCardholderName(dto.getCardholderName());
         card.setExpirationDate(dto.getExpirationDate());
+        card.setIssueDate(dto.getIssueDate());
         card.setCvv(dto.getCvv());
         card.setCardType(dto.getCardType());
         card.setBalance(0.0);
         card.setUser(getAuthenticatedUser());
 
         Card saved = cardRepository.save(card);
-
         return mapToDetailDTO(saved);
     }
 
     /**
      * Recarga saldo a la tarjeta del usuario autenticado.
      *
-     * @param amount Monto a recargar (debe ser positivo y menor o igual al máximo permitido).
-     * @return DTO con el detalle actualizado de la tarjeta.
-     * @throws BadRequestException si el monto es inválido o se supera el saldo máximo total permitido.
-     * @throws NotFoundException si el usuario no tiene una tarjeta registrada.
+     * @param amount Monto a recargar.
+     * @return DTO con el detalle actualizado.
      */
     public CardDetailDTO rechargeBalance(Double amount) {
         if (amount == null || amount <= 0) {
@@ -69,7 +71,7 @@ public class CardService {
         User user = getAuthenticatedUser();
 
         Card card = cardRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new NotFoundException("El usuario: "+user.getUsername()+" no tiene una tarjeta registrada."));
+                .orElseThrow(() -> new NotFoundException("El usuario: " + user.getUsername() + " no tiene una tarjeta registrada."));
 
         if (card.getBalance() + amount > MAX_TOTAL_BALANCE) {
             throw new BadRequestException("El saldo total no puede superar $" + MAX_TOTAL_BALANCE);
@@ -84,13 +86,12 @@ public class CardService {
     /**
      * Obtiene el saldo actual de la tarjeta del usuario autenticado.
      *
-     * @return Saldo actual de la tarjeta.
-     * @throws NotFoundException si el usuario no tiene una tarjeta registrada.
+     * @return Saldo actual.
      */
     public Double getBalance() {
         User user = getAuthenticatedUser();
         Card card = cardRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new NotFoundException("El usuario: "+user.getUsername()+" no tiene una tarjeta registrada."));
+                .orElseThrow(() -> new NotFoundException("El usuario: " + user.getUsername() + " no tiene una tarjeta registrada."));
         return card.getBalance();
     }
 
@@ -98,13 +99,12 @@ public class CardService {
      * Obtiene el detalle de la tarjeta del usuario autenticado.
      *
      * @return DTO con el detalle de la tarjeta.
-     * @throws NotFoundException si no se encuentra tarjeta para el usuario.
      */
     public CardDetailDTO findFromAuthenticatedUser() {
         User user = getAuthenticatedUser();
 
         Card card = cardRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: "+user.getUsername()));
+                .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: " + user.getUsername()));
 
         return mapToDetailDTO(card);
     }
@@ -112,11 +112,12 @@ public class CardService {
     /**
      * Actualiza los datos de la tarjeta del usuario autenticado.
      *
-     * @param dto DTO con los datos nuevos para actualizar la tarjeta.
-     * @return DTO con el detalle actualizado de la tarjeta.
-     * @throws NotFoundException si no se encuentra tarjeta para el usuario.
+     * @param dto DTO con los datos nuevos.
+     * @return DTO actualizado.
      */
     public CardDetailDTO updateAuthenticatedUserCard(CardRequestDTO dto) {
+        cardValidator.validateCard(dto);
+
         User user = getAuthenticatedUser();
 
         return cardRepository.findByUserId(user.getId())
@@ -129,53 +130,33 @@ public class CardService {
                     card.setCardType(dto.getCardType());
 
                     Card updated = cardRepository.save(card);
-
-                    return mapToDetailDTO(card);
+                    return mapToDetailDTO(updated);
                 })
                 .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: " + user.getUsername()));
     }
 
     /**
      * Elimina la tarjeta asociada al usuario autenticado.
-     *
-     * @throws NotFoundException si no se encuentra tarjeta para el usuario.
      */
     public void deleteFromAuthenticatedUser() {
         User user = getAuthenticatedUser();
 
         Card card = cardRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: "+user.getUsername()));
+                .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: " + user.getUsername()));
 
         cardRepository.delete(card);
     }
 
-    /**
-     * Obtiene el nombre de usuario (username) del usuario autenticado.
-     *
-     * @return Nombre de usuario autenticado.
-     */
     private String getAuthenticatedUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    /**
-     * Obtiene el objeto User del usuario autenticado.
-     *
-     * @return Usuario autenticado.
-     * @throws NotFoundException si el usuario no existe en la base de datos.
-     */
     private User getAuthenticatedUser() {
         String username = getAuthenticatedUsername();
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Usuario: "+username+" no encontrado. "));
+                .orElseThrow(() -> new NotFoundException("Usuario: " + username + " no encontrado. "));
     }
 
-    /**
-     * Convierte una entidad Card a su DTO detalle.
-     *
-     * @param card Entidad Card.
-     * @return DTO detalle con la información de la tarjeta.
-     */
     private CardDetailDTO mapToDetailDTO(Card card) {
         return new CardDetailDTO(
                 card.getId(),
@@ -188,6 +169,4 @@ public class CardService {
                 card.getUser().getId()
         );
     }
-
 }
-
