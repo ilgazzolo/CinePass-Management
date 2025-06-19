@@ -9,6 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+/**
+ * Controlador REST para la gestión de la tarjeta de un cliente autenticado.
+ *
+ * Permite realizar operaciones como obtener la tarjeta, crearla, actualizarla,
+ * recargar saldo, consultar saldo y eliminar la tarjeta asociada al usuario autenticado.
+ *
+ * Todas las operaciones requieren que el usuario tenga el rol 'CLIENT'.
+ */
 @RestController
 @RequestMapping("/api/client/card")
 @RequiredArgsConstructor
@@ -16,48 +24,75 @@ public class CardController {
 
     private final CardService cardService;
 
+    /**
+     * Obtiene la tarjeta asociada al usuario actualmente autenticado.
+     *
+     * @return ResponseEntity con el detalle de la tarjeta.
+     */
     @PreAuthorize("hasRole('CLIENT')")
     @GetMapping
     public ResponseEntity<CardDetailDTO> getCard() {
         return ResponseEntity.ok(cardService.findFromAuthenticatedUser());
     }
 
-
+    /**
+     * Crea una nueva tarjeta para el usuario autenticado.
+     *
+     * @param dto DTO con los datos necesarios para crear la tarjeta.
+     * @return ResponseEntity con el detalle de la tarjeta creada.
+     */
     @PreAuthorize("hasRole('CLIENT')")
     @PostMapping
     public ResponseEntity<CardDetailDTO> createCard(@RequestBody @Valid CardRequestDTO dto) {
         return ResponseEntity.ok(cardService.save(dto));
     }
 
-
+    /**
+     * Recarga el saldo de la tarjeta del usuario autenticado con el monto especificado.
+     *
+     * @param amount Monto a recargar en la tarjeta.
+     * @return ResponseEntity con el detalle actualizado de la tarjeta.
+     */
     @PreAuthorize("hasRole('CLIENT')")
     @PatchMapping("/recharge")
     public ResponseEntity<CardDetailDTO> recharge(@RequestParam Double amount) {
         return ResponseEntity.ok(cardService.rechargeBalance(amount));
     }
 
-
+    /**
+     * Obtiene el saldo actual disponible en la tarjeta del usuario autenticado.
+     *
+     * @return ResponseEntity con el saldo como un valor Double.
+     */
     @PreAuthorize("hasRole('CLIENT')")
     @GetMapping("/balance")
     public ResponseEntity<Double> getBalance() {
         return ResponseEntity.ok(cardService.getBalance());
     }
 
-
+    /**
+     * Actualiza la información de la tarjeta asociada al usuario autenticado.
+     *
+     * @param dto DTO con los nuevos datos para la tarjeta.
+     * @return ResponseEntity con el detalle actualizado de la tarjeta.
+     */
     @PreAuthorize("hasRole('CLIENT')")
     @PutMapping
     public ResponseEntity<CardDetailDTO> updateCard(@RequestBody @Valid CardRequestDTO dto) {
         return ResponseEntity.ok(cardService.updateAuthenticatedUserCard(dto));
     }
 
-
+    /**
+     * Elimina la tarjeta asociada al usuario autenticado.
+     *
+     * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
+     */
     @PreAuthorize("hasRole('CLIENT')")
     @DeleteMapping
     public ResponseEntity<Void> deleteCard() {
         cardService.deleteFromAuthenticatedUser();
         return ResponseEntity.noContent().build();
     }
-
 
 }
 

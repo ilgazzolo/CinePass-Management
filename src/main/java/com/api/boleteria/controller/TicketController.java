@@ -21,9 +21,9 @@ public class TicketController {
 
     @PreAuthorize("hasRole('CLIENT')")
     @PostMapping("/comprar")
-    public ResponseEntity<TicketDetailDTO> buyTicket(@RequestBody @Valid TicketRequestDTO request) {
-        TicketDetailDTO boleto = ticketService.create(request);
-        return ResponseEntity.ok(boleto);
+    public ResponseEntity<List<TicketDetailDTO>> buyTicket(@RequestBody @Valid TicketRequestDTO request) {
+        List<TicketDetailDTO> listTickets = ticketService.buyTickets(request);
+        return ResponseEntity.ok(listTickets);
     }
 
 

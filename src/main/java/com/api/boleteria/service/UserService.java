@@ -155,11 +155,18 @@ public class UserService implements UserDetailsService {
     }
 
 
+    /**
+     * Carga los detalles de un usuario a partir de su nombre de usuario.
+     * Este método es utilizado por Spring Security durante el proceso de autenticación.
+     *
+     * @param username Nombre de usuario.
+     * @return UserDetails con la información del usuario autenticado.
+     * @throws UsernameNotFoundException si el usuario no existe.
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("El usuario con nombre: "+username+" no fue encontrado."));
+                .orElseThrow(() -> new UsernameNotFoundException("El usuario con nombre: " + username + " no fue encontrado."));
 
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName());
 
@@ -170,7 +177,12 @@ public class UserService implements UserDetailsService {
         );
     }
 
-
+    /**
+     * Cambia el rol de un usuario a ADMIN si el usuario existe.
+     *
+     * @param username Nombre de usuario a modificar.
+     * @return true si el usuario fue encontrado y su rol fue cambiado; false si no se encontró.
+     */
     public boolean makeUserAdmin(String username) {
         return userRepository.findByUsername(username)
                 .map(user -> {
@@ -182,17 +194,27 @@ public class UserService implements UserDetailsService {
     }
 
 
-    public Boolean existsByUsername (String username){
+    /**
+     * Verifica si ya existe un usuario con el username especificado.
+     *
+     * @param username Nombre de usuario a verificar.
+     * @return true si el username ya está registrado, false en caso contrario.
+     */
+    public Boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
 
-
+    /**
+     * Obtiene los datos del perfil del usuario autenticado actualmente.
+     *
+     * @return DTO con los datos del usuario (nombre, apellido, username, email, rol).
+     * @throws UsernameNotFoundException si el usuario autenticado no existe en la base de datos.
+     */
     public UserDetailDTO getProfile() {
-
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("El usuario con nombre: "+username+" no fue encontrado."));
+                .orElseThrow(() -> new UsernameNotFoundException("El usuario con nombre: " + username + " no fue encontrado."));
 
         return new UserDetailDTO(
                 user.getId(),
@@ -204,14 +226,18 @@ public class UserService implements UserDetailsService {
         );
     }
 
-
+    /**
+     * Realiza el proceso de login autenticando al usuario y generando un token JWT si las credenciales son válidas.
+     *
+     * @param req DTO con los datos de login (username y password).
+     * @param authManager AuthenticationManager configurado por Spring Security.
+     * @return Mapa con el token JWT generado.
+     */
     public Map<String, String> login(LoginRequestDTO req, AuthenticationManager authManager) {
-        // 1) Construir token de autenticación
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
         );
 
-        // 2) Generar JWT si éxito
         UserDetails user = (UserDetails) auth.getPrincipal();
         String jwt = JwtUtil.createToken(
                 user.getUsername(),
@@ -223,6 +249,19 @@ public class UserService implements UserDetailsService {
         return Map.of("token", jwt);
     }
 
+
+    /**
+     * Obtiene el usuario actualmente autenticado en el sistema.
+     *
+     * @return Entidad User del usuario autenticado.
+     * @throws NotFoundException si el usuario no existe.
+     */
+    public User getUsernameAuthenticatedUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Usuario con nombre de usuario: " + username + " no encontrado."));
+    }
 
 
 }

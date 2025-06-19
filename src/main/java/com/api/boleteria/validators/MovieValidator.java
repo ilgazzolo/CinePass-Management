@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class MovieValidator {
 
 
-        public static void CamposValidator(MovieRequestDTO dto) {
+        public static void validateFields(MovieRequestDTO dto) {
             if (dto.getTitle() == null || dto.getTitle().isBlank()) {
                 throw new IllegalArgumentException("El título no puede estar vacío.");
             }
@@ -20,18 +20,13 @@ public class MovieValidator {
             if (dto.getDirector() == null || dto.getDirector().isBlank()) {
                 throw new IllegalArgumentException("El director no puede estar vacío.");
             }
-            if (dto.getRating() == null || dto.getRating().isBlank()) {
+            if (dto.getClassification() == null || dto.getClassification().isBlank()) {
                 throw new IllegalArgumentException("El rating no es válido.");
             }
             if (dto.getSynopsis() == null || dto.getSynopsis().isBlank()) {
                 throw new IllegalArgumentException("La sinopsis no puede estar vacía.");
             }
 
-
-            /*               ///No es obligatorio tener una funcion, sino no puedo crear peliculas
-            if (dto.getFunctionId() == null || dto.getFunctionId() <= 0) {
-                throw new IllegalArgumentException("El ID de función es obligatorio y debe ser positivo.");
-            }*/
         }
 
 

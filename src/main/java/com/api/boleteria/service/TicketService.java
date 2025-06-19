@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,64 +35,68 @@ public class TicketService {
     private final ICardRepository cardRepository;
     private final IUserRepository userRepository;
     private final IFunctionRepository functionRepository;
+    private final UserService userService;
 
-    private static final double PRECIO_TICKET = 2500.0;
+    public static final double TICKET_PRICE = 2500.0;
 
     /**
-     * Crea un nuevo ticket para la función especificada.
-     * Verifica la capacidad disponible y descuenta 1 al generar el ticket.
+     * Crea uno o varios tickets para una función específica.
+     * Verifica la disponibilidad de entradas y el saldo en la tarjeta del usuario.
      *
-     * @param dto DTO con la información de la compra de ticket.
-     * @return BoletoDetailDTO con los datos del ticket creado.
+     * @param dto DTO con los datos de la compra (ID de función y cantidad).
+     * @return Lista de TicketDetailDTO con los tickets comprados.
      */
-    public TicketDetailDTO create(TicketRequestDTO dto) {
-        BoletoValidator.validarCampos(dto);
+    public List<TicketDetailDTO> buyTickets(TicketRequestDTO dto) {
+        BoletoValidator.validateFields(dto);
+        User user = userService.getUsernameAuthenticatedUser();
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        // verifico si existe la funcion
+        Function function = functionRepository.findById(dto.getFunctionId())
+                .orElseThrow(() -> new NotFoundException("Función no encontrada."));
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Usuario con nombre: "+username+" no encontrado"));
+        int requestedQuantity = dto.getQuantity();
+        BoletoValidator.validateCapacity(function, requestedQuantity);
 
-        Function function = functionRepository.findById(dto.funcionId())
-                .orElseThrow(() -> new NotFoundException("Función no encontrada"));
-
-        if (function.getAvailableCapacity() <= 0) {
-            throw new BadRequestException("No hay más entradas disponibles.");
-        }
-
+        // verifico que exista la tarjeta
         Card card = cardRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new NotFoundException("El usuario: "+username+" no tiene una tarjeta registrada."));
+                .orElseThrow(() -> new NotFoundException("El usuario " + user.getUsername() + " no tiene una tarjeta registrada."));
 
-        if (card.getBalance() < PRECIO_TICKET) {
-            throw new BadRequestException("Fondos insuficientes en la tarjeta.");
-        }
+        BoletoValidator.validateCardBalance(card, requestedQuantity);
 
-        card.setBalance(card.getBalance() - PRECIO_TICKET);
+        double totalAmount = TICKET_PRICE * requestedQuantity;
+
+        // Descuento saldo y capacidad
+        card.setBalance(card.getBalance() - totalAmount);
+        function.setAvailableCapacity(function.getAvailableCapacity() - requestedQuantity);
         cardRepository.save(card);
-
-        function.setAvailableCapacity(function.getAvailableCapacity() - 1);
         functionRepository.save(function);
 
+        List<Ticket> createdTickets = new ArrayList<>();
 
-        Ticket ticket = new Ticket();
-        ticket.setTicketPrice(PRECIO_TICKET);
-        ticket.setPurchaseDateTime(LocalDateTime.now());
-        ticket.setUser(user);
-        ticket.setFunction(function);
+        for (int i = 0; i < requestedQuantity; i++) {
+            Ticket ticket = new Ticket();
+            ticket.setTicketPrice(TICKET_PRICE);
+            ticket.setPurchaseDateTime(LocalDateTime.now());
+            ticket.setUser(user);
+            ticket.setFunction(function);
 
-        Ticket savedTicket = ticketRepository.save(ticket);
+            Ticket saved = ticketRepository.save(ticket);
+            createdTickets.add(saved);
+            user.getTickets().add(saved);
+        }
 
-        user.getTickets().add(savedTicket);
         userRepository.save(user);
 
-        return new TicketDetailDTO(
-                savedTicket.getId(),
-                savedTicket.getPurchaseDateTime().toLocalDate().toString(),
-                function.getMovie().getTitle(),
-                function.getCinema().getRoomId(),
-                savedTicket.getPurchaseDateTime().toLocalTime().toString(),
-                savedTicket.getTicketPrice()
-        );
+        return createdTickets.stream()
+                .map(ticket -> new TicketDetailDTO(
+                        ticket.getId(),
+                        ticket.getPurchaseDateTime().toLocalDate().toString(),
+                        function.getMovie().getTitle(),
+                        function.getCinema().getId(),
+                        ticket.getPurchaseDateTime().toLocalTime().toString(),
+                        ticket.getTicketPrice()
+                ))
+                .toList();
     }
 
 
@@ -101,15 +106,11 @@ public class TicketService {
      * @return Lista de BoletoDetailDTO con los tickets del usuario.
      */
     public List<TicketDetailDTO> findTicketsFromAuthenticatedUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario con nombre: "+username+" no encontrado"));
+        User user = userService.getUsernameAuthenticatedUser();
 
         return user.getTickets().stream().map(ticket -> {
             String movieTitle = ticket.getFunction().getMovie().getTitle();
-            Long roomId = ticket.getFunction().getCinema().getRoomId();
+            Long roomId = ticket.getFunction().getCinema().getId();
             String purchaseTime = ticket.getPurchaseDateTime().toLocalTime().toString();
 
             return new TicketDetailDTO(
@@ -132,21 +133,18 @@ public class TicketService {
      * @throws AccesDeniedException si el ticket no pertenece al usuario autenticado.
      */
     public TicketDetailDTO findTicketById(Long ticketId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario con nombre: "+username+" no encontrado"));
+        User user = userService.getUsernameAuthenticatedUser();
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new NotFoundException("No se encontró el ticket con ID: " + ticketId));
 
+        // verifica que el ticket sea del usuario activo
         if (!ticket.getUser().getId().equals(user.getId())) {
             throw new AccesDeniedException("No tiene permiso para ver este ticket.");
         }
 
         String movieTitle = ticket.getFunction().getMovie().getTitle();
-        Long roomId = ticket.getFunction().getCinema().getRoomId();
+        Long roomId = ticket.getFunction().getCinema().getId();
         String purchaseTime = ticket.getPurchaseDateTime().toLocalTime().toString();
 
         return new TicketDetailDTO(

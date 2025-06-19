@@ -9,6 +9,7 @@ import com.api.boleteria.model.Cinema;
 import com.api.boleteria.model.ScreenType;
 import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
+import com.api.boleteria.validators.CinemaValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,8 @@ public class CinemaService {
      * @return Cinema Detail con la informacion de la sala creada
      */
     public CinemaDetailDTO save(CinemaRequestDTO entity){
+        CinemaValidator.validateFields(entity);
+
         Cinema cinema = new Cinema();
         cinema.setName(entity.getNombre());
         cinema.setScreenType(entity.getScreenType());
@@ -41,7 +44,7 @@ public class CinemaService {
         Cinema saved = cinemaRepository.save(cinema);
 
         return new CinemaDetailDTO(
-                saved.getRoomId(),
+                saved.getId(),
                 saved.getName(),
                 saved.getScreenType(),
                 saved.getAtmos(),
@@ -58,7 +61,7 @@ public class CinemaService {
     public List<CinemaListDTO> findAll(){
         return cinemaRepository.findAll().stream().
                 map(c -> new CinemaListDTO(
-                        c.getRoomId(),
+                        c.getId(),
                         c.getName(),
                         c.getSeatCapacity(),
                         c.getEnabled()
@@ -77,7 +80,7 @@ public class CinemaService {
                 orElseThrow(() -> new NotFoundException("La sala con ID: "+id+" no fue encontrada. "));
 
         return new CinemaDetailDTO(
-                cinema.getRoomId(),
+                cinema.getId(),
                 cinema.getName(),
                 cinema.getScreenType(),
                 cinema.getAtmos(),
@@ -95,7 +98,7 @@ public class CinemaService {
     public List<CinemaListDTO> findByScreenType(ScreenType screenType){
         return cinemaRepository.findByScreenType(screenType).stream()
                 .map(p->new CinemaListDTO(
-                        p.getRoomId(),
+                        p.getId(),
                         p.getName(),
                         p.getSeatCapacity(),
                         p.getEnabled()
@@ -112,7 +115,7 @@ public class CinemaService {
     public List<CinemaListDTO> findByEnabledRoom(boolean enabled){
         return cinemaRepository.findByEnabled(enabled).stream()
                 .map(c->new CinemaListDTO(
-                        c.getRoomId(),
+                        c.getId(),
                         c.getName(),
                         c.getSeatCapacity(),
                         c.getEnabled()
@@ -129,7 +132,7 @@ public class CinemaService {
     public List<CinemaListDTO> findBySeatCapacity(Integer seatCapacity){
         return cinemaRepository.findBySeatCapacityGreaterThan(0).stream()
                 .map(c->new CinemaListDTO(
-                        c.getRoomId(),
+                        c.getId(),
                         c.getName(),
                         c.getSeatCapacity(),
                         c.getEnabled()
@@ -145,12 +148,13 @@ public class CinemaService {
      * @return CinemaDetail con la informacion de la sala actualizada
      */
     public CinemaDetailDTO updateById(Long id, CinemaRequestDTO entity){
+       CinemaValidator.validateFields(entity);
         return cinemaRepository.findById(id).
                 map(c -> {
                     c.setSeatCapacity(entity.getCapacity());
                     Cinema created = cinemaRepository.save(c);
                     return new CinemaDetailDTO(
-                            created.getRoomId(),
+                            created.getId(),
                             created.getName(),
                             created.getScreenType(),
                             created.getAtmos(),

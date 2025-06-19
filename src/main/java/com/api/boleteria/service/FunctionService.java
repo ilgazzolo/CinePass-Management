@@ -1,5 +1,6 @@
 package com.api.boleteria.service;
 
+import com.api.boleteria.controller.FunctionController;
 import com.api.boleteria.dto.detail.FunctionDetailDTO;
 import com.api.boleteria.dto.list.FunctionListDTO;
 import com.api.boleteria.dto.request.FunctionRequestDTO;
@@ -41,25 +42,22 @@ public class FunctionService {
      */
     public FunctionDetailDTO create (FunctionRequestDTO entity){
         //  valida los campos ingresados
-        FunctionValidator.validate(entity);
+        FunctionValidator.validateFields(entity);
 
-        //valida que no haya una funcion en esa sala en esa date
-        if (functionRepo.existsByCinemaIdAndDate(entity.getCinemaId(), entity.getDate())) {
+        // valida que no haya una funcion en esa sala en esa fecha
+        if (functionRepo.existsByCinemaIdAndDate(entity.getCinemaId(), entity.getShowtime())) {
             throw new BadRequestException("Ya existe una función para esa sala en ese horario.");
         }
 
         //  verifica que no se creen funciones para dentro de mas de dos años
-        if (entity.getDate().isAfter(LocalDateTime.now().plusYears(2))) {
-            throw new BadRequestException("La fecha de la función es demasiado lejana.");
-        }
+       FunctionValidator.validateMaxTwoYears(entity);
 
         //  validaciones de sala
         Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow(() -> new NotFoundException("No existe la sala ingresada."));
-        if(!cinema.getEnabled()){
-            throw new BadRequestException("La sala" + cinema.getName() + "ingresar no esta habilitada");
-        }
+        FunctionValidator.validateEnabledCinema(cinema);
 
-        // validaciones pelicula
+
+        // verifica que exista la pelicula
         Movie movie = movieRepo.findById(entity.getMovieId()).orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada.") );
 
         // Verifica que no haya funciones en el rango horario
@@ -67,7 +65,7 @@ public class FunctionService {
         FunctionValidator.validateHorario(entity, movie, funcionesEnSala);
 
         Function function = new Function();
-        function.setShowtime(entity.getDate());
+        function.setShowtime(entity.getShowtime());
         function.setCinema(cinema);
         function.setAvailableCapacity(cinema.getSeatCapacity());
         function.setMovie(movie);
@@ -80,7 +78,7 @@ public class FunctionService {
         return new FunctionDetailDTO(
                 saved.getId(),
                 saved.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
-                cinema.getRoomId(),
+                cinema.getId(),
                 movie.getId(),
                 movie.getTitle()
         );
@@ -97,7 +95,7 @@ public class FunctionService {
                         f.getId(),
                         f.getShowtime().toLocalDate(),
                         f.getShowtime().toLocalTime(),
-                        f.getCinema().getRoomId(),
+                        f.getCinema().getId(),
                         f.getMovie().getTitle(),
                         f.getAvailableCapacity()
                 ))
@@ -117,7 +115,7 @@ public class FunctionService {
         return new FunctionDetailDTO(
                 function.getId(),
                 function.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
-                function.getCinema().getRoomId(),
+                function.getCinema().getId(),
                 function.getMovie().getId(),
                 function.getMovie().getTitle()
         );
@@ -131,24 +129,40 @@ public class FunctionService {
      * @return Function Detail con la informacion de la funcion actualizada
      */
     public FunctionDetailDTO updateById (Long id, FunctionRequestDTO entity){
-        FunctionValidator.validate(entity);
+        FunctionValidator.validateFields(entity);
+        // valida que no haya una funcion en esa sala en esa fecha
+        if (functionRepo.existsByCinemaIdAndDate(entity.getCinemaId(), entity.getShowtime())) {
+            throw new BadRequestException("Ya existe una función para esa sala en ese horario.");
+        }
+
+        //  verifica que no se creen funciones para dentro de mas de dos años
+        FunctionValidator.validateMaxTwoYears(entity);
+
+        //  validaciones de sala
+        Cinema cinema = cinemaRepo.findById(entity.getCinemaId()).orElseThrow(() -> new NotFoundException("No existe la sala ingresada."));
+        FunctionValidator.validateEnabledCinema(cinema);
+
+
+        // verifica que exista la pelicula
+        Movie movie = movieRepo.findById(entity.getMovieId()).orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada.") );
+
+        // Verifica que no haya funciones en el rango horario
+        List<Function> funcionesEnSala = functionRepo.findByCinemaId(entity.getCinemaId());
+        FunctionValidator.validateHorario(entity, movie, funcionesEnSala);
+
+
         return functionRepo.findById(id)
                 .map(f -> {
-                    f.setShowtime(entity.getDate());
-
-                    Cinema cinema = cinemaRepo.findById(entity.getCinemaId())
-                            .orElseThrow(() -> new NotFoundException("La sala no fue encontrada."));
+                    f.setShowtime(entity.getShowtime());
                     f.setCinema(cinema);
-
-                    Movie movie = movieRepo.findById(entity.getMovieId())
-                            .orElseThrow(() -> new NotFoundException("La pelicula no fue encontrada."));
                     f.setMovie(movie);
+                    f.setAvailableCapacity(cinema.getSeatCapacity());
 
                     Function created = functionRepo.save(f);
                     return new FunctionDetailDTO(
                             created.getId(),
                             created.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
-                            created.getCinema().getRoomId(),
+                            created.getCinema().getId(),
                             created.getMovie().getId(),
                             created.getMovie().getTitle()
                     );
@@ -184,7 +198,7 @@ public class FunctionService {
                         f.getId(),
                         f.getShowtime().toLocalDate(),
                         f.getShowtime().toLocalTime(),
-                        f.getCinema().getRoomId(),
+                        f.getCinema().getId(),
                         f.getMovie().getTitle(),
                         f.getAvailableCapacity()
                 ))
@@ -214,7 +228,7 @@ public class FunctionService {
                         f.getId(),
                         f.getShowtime().toLocalDate(),
                         f.getShowtime().toLocalTime(),
-                        f.getCinema().getRoomId(),
+                        f.getCinema().getId(),
                         f.getMovie().getTitle(),
                         f.getAvailableCapacity()
                 ))

@@ -2,6 +2,7 @@ package com.api.boleteria.validators;
 
 import com.api.boleteria.dto.request.FunctionRequestDTO;
 import com.api.boleteria.exception.BadRequestException;
+import com.api.boleteria.model.Cinema;
 import com.api.boleteria.model.Function;
 import com.api.boleteria.model.Movie;
 
@@ -10,12 +11,12 @@ import java.util.List;
 
 public class FunctionValidator {
 
-    public static void validate(FunctionRequestDTO dto) {
-        if (dto.getDate() == null) {
+    public static void validateFields(FunctionRequestDTO dto) {
+        if (dto.getShowtime() == null) {
             throw new BadRequestException("La date de la función no puede ser nula.");
         }
 
-        if (dto.getDate().isBefore(LocalDateTime.now())) {
+        if (dto.getShowtime().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("La date de la función no puede estar en el pasado.");
         }
 
@@ -30,7 +31,7 @@ public class FunctionValidator {
 
     // Validación de solapamiento de horarios en la misma sala
     public static void validateHorario(FunctionRequestDTO dto, Movie movie, List<Function> funcionesEnSala) {
-        LocalDateTime nuevaInicio = dto.getDate();
+        LocalDateTime nuevaInicio = dto.getShowtime();
         LocalDateTime nuevaFin = nuevaInicio.plusMinutes(movie.getDuration());
 
         for (Function f : funcionesEnSala) {
@@ -43,6 +44,20 @@ public class FunctionValidator {
             }
         }
     }
+
+    // valida que no se creen funciones para un maximo de dos años
+    public static void validateMaxTwoYears(FunctionRequestDTO dto) {
+        if (dto.getShowtime().isAfter(LocalDateTime.now().plusYears(2))) {
+            throw new BadRequestException("La fecha de la función es demasiado lejana.");
+        }
+    }
+
+    public static void validateEnabledCinema(Cinema cinema) {
+        if (!cinema.getEnabled()) {
+            throw new BadRequestException("La sala " + cinema.getName() + " no está habilitada.");
+        }
+    }
+
 
 
 }

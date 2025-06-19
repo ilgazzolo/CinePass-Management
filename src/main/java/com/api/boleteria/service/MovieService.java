@@ -32,7 +32,7 @@ public class MovieService {
      */
     public MovieDetailDTO create(MovieRequestDTO req) {
         // Validación de campos del DTO
-        MovieValidator.CamposValidator(req);
+        MovieValidator.validateFields(req);
 
         // Validación de existencia por título
         if (movieRepository.existsByTitle(req.getTitle().trim())) {
@@ -44,9 +44,9 @@ public class MovieService {
         movie.setDuration(req.getDuration());
         movie.setMovieGenre(req.getGenre());
         movie.setDirector(req.getDirector());
-        movie.setClassification(req.getRating());
+        movie.setClassification(req.getClassification());
         movie.setSynopsis(req.getSynopsis());
-        //movie.setFunctionList(functionList);
+
 
         Movie saved = movieRepository.save(movie);
 
@@ -146,12 +146,8 @@ public class MovieService {
                     movie.setDuration(req.getDuration());
                     movie.setMovieGenre(req.getGenre());
                     movie.setDirector(req.getDirector());
-                    movie.setClassification(req.getRating());
+                    movie.setClassification(req.getClassification());
                     movie.setSynopsis(req.getSynopsis());
-
-                    List<Function> functions = functionRepository.findAllById(req.getFunctionListId());
-
-                    movie.setFunctions(functions);
 
                     Movie update = movieRepository.save(movie);
 

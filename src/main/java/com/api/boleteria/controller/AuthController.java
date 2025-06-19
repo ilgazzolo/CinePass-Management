@@ -14,22 +14,36 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/**
+ * Controlador REST para autenticación y registro de usuarios.
+ *
+ * Permite a los usuarios autenticarse (login) y registrarse en el sistema.
+ */
 @RestController
 @RequestMapping("/api/auth")
 @AllArgsConstructor
 public class AuthController {
 
-
     private final AuthenticationManager authManager;
     private final UserService userService;
 
+    /**
+     * Autentica a un usuario con las credenciales proporcionadas.
+     *
+     * @param req DTO con username y password para autenticación.
+     * @return ResponseEntity con un mapa que contiene el token JWT u otra información de sesión.
+     */
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDTO req) {
         return ResponseEntity.ok(userService.login(req, authManager));
     }
 
-
-
+    /**
+     * Registra un nuevo usuario en el sistema.
+     *
+     * @param req DTO con los datos para registrar al usuario.
+     * @return ResponseEntity con mensaje de éxito o conflicto si el username ya existe.
+     */
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequestDTO req) {
         // Validar si username o email ya existen
