@@ -1,14 +1,13 @@
-package com.api.boleteria.CardValidator;
+package com.api.boleteria.validators;
 
 import com.api.boleteria.dto.request.TicketRequestDTO;
 import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.model.Card;
 import com.api.boleteria.model.Function;
-import com.api.boleteria.service.TicketService;
 
 import static com.api.boleteria.service.TicketService.TICKET_PRICE;
 
-public class BoletoValidator {
+public class TicketValidator {
 
     public static void validateFields (TicketRequestDTO dto) {
         if (dto.getFunctionId() == null || dto.getFunctionId() <= 0) {

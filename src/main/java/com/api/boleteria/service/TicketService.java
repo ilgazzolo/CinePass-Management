@@ -13,7 +13,7 @@ import com.api.boleteria.repository.ICardRepository;
 import com.api.boleteria.repository.ITicketRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import com.api.boleteria.repository.IUserRepository;
-import com.api.boleteria.validators.BoletoValidator;
+import com.api.boleteria.validators.TicketValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,7 +47,7 @@ public class TicketService {
      * @return Lista de TicketDetailDTO con los tickets comprados.
      */
     public List<TicketDetailDTO> buyTickets(TicketRequestDTO dto) {
-        BoletoValidator.validateFields(dto);
+        TicketValidator.validateFields(dto);
         User user = userService.getUsernameAuthenticatedUser();
 
         // verifico si existe la funcion
@@ -55,13 +55,13 @@ public class TicketService {
                 .orElseThrow(() -> new NotFoundException("Función no encontrada."));
 
         int requestedQuantity = dto.getQuantity();
-        BoletoValidator.validateCapacity(function, requestedQuantity);
+        TicketValidator.validateCapacity(function, requestedQuantity);
 
         // verifico que exista la tarjeta
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("El usuario " + user.getUsername() + " no tiene una tarjeta registrada."));
 
-        BoletoValidator.validateCardBalance(card, requestedQuantity);
+        TicketValidator.validateCardBalance(card, requestedQuantity);
 
         double totalAmount = TICKET_PRICE * requestedQuantity;
 
