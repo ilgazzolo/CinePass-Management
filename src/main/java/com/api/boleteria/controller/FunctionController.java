@@ -24,7 +24,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/funciones")
+@RequestMapping("/api/functions")
 public class FunctionController {
     private final FunctionService functionService;
 
@@ -103,8 +103,8 @@ public class FunctionController {
     @GetMapping("/disponibles/{movieId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getAvailableFunctionsPerMovie(@PathVariable Long movieId) {
-        List<FunctionListDTO> funciones = functionService.findByMovieIdAndAvailableCapacity(movieId);
-        return ResponseEntity.ok(funciones);
+        List<FunctionListDTO> function = functionService.findByMovieIdAndAvailableCapacity(movieId);
+        return ResponseEntity.ok(function);
     }
 
     /**
@@ -116,8 +116,8 @@ public class FunctionController {
     @GetMapping("/tipo-pantalla/{screenType}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getByScreenType(@PathVariable ScreenType screenType) {
-        List<FunctionListDTO> funciones = functionService.findByScreenType(screenType);
-        return ResponseEntity.ok(funciones);
+        List<FunctionListDTO> function = functionService.findByScreenType(screenType);
+        return ResponseEntity.ok(function);
     }
 
 }

@@ -23,6 +23,7 @@ import java.util.List;
  * a usuarios con rol ADMIN, mientras que la consulta está permitida también
  * para usuarios con rol CLIENT.
  */
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/movies")
@@ -34,13 +35,14 @@ public class MovieController {
     /**
      * Registra una nueva película.
      *
-     * @param req DTO con la información necesaria para crear la película.
+     * @param entity DTO con la información necesaria para crear la película.
      * @return ResponseEntity con el detalle de la película creada.
      */
+
     @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MovieDetailDTO> create (@Valid @RequestBody MovieRequestDTO req){
-        return ResponseEntity.ok(movieService.create(req));
+    public ResponseEntity<MovieDetailDTO> create (@Valid @RequestBody MovieRequestDTO entity){
+        return ResponseEntity.ok(movieService.create(entity));
     }
 
     /**
@@ -48,6 +50,7 @@ public class MovieController {
      *
      * @return ResponseEntity con una lista de películas o lanza RuntimeException si la lista está vacía.
      */
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<MovieListDTO>> getAll(){
@@ -64,6 +67,7 @@ public class MovieController {
      * @param id Identificador de la película.
      * @return ResponseEntity con el detalle de la película.
      */
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<MovieDetailDTO> getById(@PathVariable Long id){
@@ -76,6 +80,7 @@ public class MovieController {
      * @param id Identificador de la película a eliminar.
      * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
      */
+
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete (@PathVariable Long id){
@@ -87,13 +92,14 @@ public class MovieController {
      * Actualiza una película por su ID.
      *
      * @param id Identificador de la película a actualizar.
-     * @param req DTO con la nueva información para la película.
+     * @param entity DTO con la nueva información para la película.
      * @return ResponseEntity con el detalle actualizado de la película.
      */
+
     @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MovieDetailDTO> update(@PathVariable Long id, @Valid @RequestBody MovieRequestDTO req){
-        return ResponseEntity.ok(movieService.updateById(id, req));
+    public ResponseEntity<MovieDetailDTO> update(@PathVariable Long id, @Valid @RequestBody MovieRequestDTO entity){
+        return ResponseEntity.ok(movieService.updateById(id, entity));
     }
 
     /**
@@ -102,6 +108,7 @@ public class MovieController {
      * @param genre Género para filtrar las películas.
      * @return ResponseEntity con la lista de películas que coinciden con el género.
      */
+
     @GetMapping("/genre/{genre}")
     public ResponseEntity<List<MovieListDTO>> findByGenre(@PathVariable String genre) {
         return ResponseEntity.ok(movieService.findByMovieGenre(genre));

@@ -6,44 +6,87 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * Maneja de forma global las excepciones lanzadas en los controladores REST.
+ *
+ * Proporciona métodos específicos para manejar distintas excepciones y devolver
+ * respuestas HTTP con el código y mensaje adecuado.
+ */
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    ///  maneja la excepcion BadRequestException
+    /**
+     * Maneja la excepción BadRequestException y devuelve una respuesta con estado 400.
+     *
+     * @param ex Excepción BadRequestException capturada.
+     * @return ResponseEntity con mensaje de error y estado HTTP 400 (Bad Request).
+     */
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<String> BadRequestExceptionHandler(BadRequestException ex){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
 
-    ///  Maneja la excepcion IllegalArgument
+    /**
+     * Maneja la excepción IllegalArgumentException y devuelve una respuesta con estado 400.
+     *
+     * @param ex Excepción IllegalArgumentException capturada.
+     * @return ResponseEntity con mensaje de error y estado HTTP 400 (Bad Request).
+     */
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> IllegalArgumentExceptionHandler(IllegalArgumentException ex){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
 
-    /// Maneja excepcion AccesDenied
+    /**
+     * Maneja la excepción AccesDeniedException y devuelve una respuesta con estado 401.
+     *
+     * @param ex Excepción AccesDeniedException capturada.
+     * @return ResponseEntity con mensaje de error y estado HTTP 401 (Unauthorized).
+     */
+
     @ExceptionHandler(AccesDeniedException.class)
     public ResponseEntity<String> AccesDeniedExceptionsHandler(AccesDeniedException ex){
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 
 
-    /// Maneja excepcion UserNameNotFound
+    /**
+     * Maneja la excepción UsernameNotFoundException y devuelve una respuesta con estado 404.
+     *
+     * @param ex Excepción UsernameNotFoundException capturada.
+     * @return ResponseEntity con mensaje de error y estado HTTP 404 (Not Found).
+     */
+
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<String> userNameNotFoundExceptionHandler(UsernameNotFoundException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getLocalizedMessage());
     }
 
 
-    ///  Maneja excepcion NotFound
+    /**
+     * Maneja la excepción NotFoundException y devuelve una respuesta con estado 404.
+     *
+     * @param ex Excepción NotFoundException capturada.
+     * @return ResponseEntity con mensaje de error y estado HTTP 404 (Not Found).
+     */
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<String> NotFoundExceptionHandler(NotFoundException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
-    ///  Maneja excepciones generales
+    /**
+     * Maneja excepciones generales no capturadas específicamente.
+     *
+     * @param ex Excepción general capturada.
+     * @return ResponseEntity con mensaje de error y estado HTTP 500 (Internal Server Error).
+     */
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> otherExceptionHandler(Exception ex){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado: " + ex.getMessage());

@@ -10,31 +10,44 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Clase utilitaria para crear y validar tokens JWT.
+ */
+
 public class JwtUtil {
-    // 1) Clave secreta para firmar y validar. En producción usar variables de entorno.
+
     private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private static final long EXPIRATION = 3600000L;
 
-
-    // 2) Tiempo de validez en ms (15-30 min recomendado)
-    private static final long EXPIRATION = 3600000L; // 1 hora
-
-    /** Crea un JWT */
+    /**
+     * Crea un token JWT con el nombre de usuario y roles indicados.
+     *
+     * @param username Nombre de usuario para asignar al token.
+     * @param roles    Lista de roles asociados al usuario.
+     * @return Token JWT firmado como String.
+     */
     public static String createToken(String username, List<String> roles) {
+
         return Jwts.builder()
-                .setSubject(username)                   // claim "sub"
-                .claim("roles", roles)                // claim personalizado
-                .setIssuedAt(new Date())                // claim "iat"
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION)) // "exp"
+                .setSubject(username)
+                .claim("roles", roles)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(SECRET_KEY)
-                .compact();                             // construye el string
+                .compact();
     }
 
-    /** Valida firma y expiración */
+    /**
+     * Valida que el token JWT sea válido y no haya expirado.
+     *
+     * @param token Token JWT a validar.
+     * @return true si el token es válido; false si es inválido o expirado.
+     */
     public static boolean validateToken(String token) {
         try {
             Jwts.parser()
                     .setSigningKey(SECRET_KEY)
-                    .parseClaimsJws(token);  // lanza excepción si inválido o expirado
+                    .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
             System.err.println("JWT expirado: " + e.getMessage());
@@ -44,8 +57,14 @@ public class JwtUtil {
         return false;
     }
 
-    /** Obtiene el sujeto (username) */
+    /**
+     * Obtiene el nombre de usuario (subject) del token JWT.
+     *
+     * @param token Token JWT del cual extraer el nombre de usuario.
+     * @return Nombre de usuario contenido en el token.
+     */
     public static String getUsername(String token) {
+
         return Jwts.parser()
                 .setSigningKey(SECRET_KEY)
                 .parseClaimsJws(token)
@@ -54,8 +73,10 @@ public class JwtUtil {
     }
 
     /**
-     * Obtiene lista de roles.
-     * @SuppressWarnings para suprimir warning de cast genérico.
+     * Obtiene la lista de roles del token JWT.
+     *
+     * @param token Token JWT del cual extraer los roles.
+     * @return Lista de roles almacenados en el token.
      */
     @SuppressWarnings("unchecked")
     public static List<String> getRoles(String token) {

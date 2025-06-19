@@ -45,7 +45,7 @@ public class FunctionService {
         FunctionValidator.validateFields(entity);
 
         // valida que no haya una funcion en esa sala en esa fecha
-        if (functionRepo.existsByCinemaIdAndDate(entity.getCinemaId(), entity.getShowtime())) {
+        if (functionRepo.existsByCinemaIdAndShowtime(entity.getCinemaId(), entity.getShowtime())) {
             throw new BadRequestException("Ya existe una función para esa sala en ese horario.");
         }
 
@@ -131,7 +131,7 @@ public class FunctionService {
     public FunctionDetailDTO updateById (Long id, FunctionRequestDTO entity){
         FunctionValidator.validateFields(entity);
         // valida que no haya una funcion en esa sala en esa fecha
-        if (functionRepo.existsByCinemaIdAndDate(entity.getCinemaId(), entity.getShowtime())) {
+        if (functionRepo.existsByCinemaIdAndShowtime(entity.getCinemaId(), entity.getShowtime())) {
             throw new BadRequestException("Ya existe una función para esa sala en ese horario.");
         }
 
@@ -189,7 +189,7 @@ public class FunctionService {
      * @return Lista de FunctionListDTO con la informacion de las funciones encontradas
      */
     public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
-        List<Function> funciones = functionRepo.findByMovieIdAndAvailableCapacityGreaterThanAndDateAfter(
+        List<Function> funciones = functionRepo.findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
                 movieId, 0, LocalDateTime.now()
         );
 

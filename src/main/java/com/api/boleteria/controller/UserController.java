@@ -21,7 +21,7 @@ import java.util.List;
  */
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/GestionUsuarios")
+@RequestMapping("/api/userManagement")
 public class UserController {
     private final UserService userService;
 
@@ -70,13 +70,14 @@ public class UserController {
     /**
      * Actualiza la información del usuario autenticado (o de un usuario, según contexto).
      *
-     * @param dto DTO con la información para actualizar.
+     * @param entity DTO con la información para actualizar.
      * @return ResponseEntity con el usuario actualizado.
      */
+
     @PutMapping("/me")
     @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
-    public ResponseEntity<UserDetailDTO> update(@RequestBody RegisterRequestDTO dto) {
-        UserDetailDTO updated = userService.update(dto);
+    public ResponseEntity<UserDetailDTO> update(@RequestBody RegisterRequestDTO entity) {
+        UserDetailDTO updated = userService.update(entity);
         return ResponseEntity.ok(updated);
     }
 
@@ -86,6 +87,7 @@ public class UserController {
      * @param id Identificador del usuario.
      * @return ResponseEntity con el detalle del usuario.
      */
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDetailDTO> findById(@PathVariable Long id) {
@@ -98,6 +100,7 @@ public class UserController {
      *
      * @return ResponseEntity con el detalle del usuario autenticado.
      */
+
     @GetMapping("/me")
     @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
     public ResponseEntity<UserDetailDTO> getMyProfile() {

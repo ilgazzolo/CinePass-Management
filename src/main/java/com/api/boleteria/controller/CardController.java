@@ -17,8 +17,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
  *
  * Todas las operaciones requieren que el usuario tenga el rol 'CLIENT'.
  */
+
 @RestController
-@RequestMapping("/api/client/card")
+@RequestMapping("/api/card")
 @RequiredArgsConstructor
 public class CardController {
 
@@ -29,8 +30,9 @@ public class CardController {
      *
      * @return ResponseEntity con el detalle de la tarjeta.
      */
-    @PreAuthorize("hasRole('CLIENT')")
+
     @GetMapping
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<CardDetailDTO> getCard() {
         return ResponseEntity.ok(cardService.findFromAuthenticatedUser());
     }
@@ -38,13 +40,14 @@ public class CardController {
     /**
      * Crea una nueva tarjeta para el usuario autenticado.
      *
-     * @param dto DTO con los datos necesarios para crear la tarjeta.
+     * @param entity DTO con los datos necesarios para crear la tarjeta.
      * @return ResponseEntity con el detalle de la tarjeta creada.
      */
-    @PreAuthorize("hasRole('CLIENT')")
+
     @PostMapping
-    public ResponseEntity<CardDetailDTO> createCard(@RequestBody @Valid CardRequestDTO dto) {
-        return ResponseEntity.ok(cardService.save(dto));
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<CardDetailDTO> createCard(@RequestBody @Valid CardRequestDTO entity) {
+        return ResponseEntity.ok(cardService.save(entity));
     }
 
     /**
@@ -53,8 +56,9 @@ public class CardController {
      * @param amount Monto a recargar en la tarjeta.
      * @return ResponseEntity con el detalle actualizado de la tarjeta.
      */
-    @PreAuthorize("hasRole('CLIENT')")
+
     @PatchMapping("/recharge")
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<CardDetailDTO> recharge(@RequestParam Double amount) {
         return ResponseEntity.ok(cardService.rechargeBalance(amount));
     }
@@ -64,8 +68,9 @@ public class CardController {
      *
      * @return ResponseEntity con el saldo como un valor Double.
      */
-    @PreAuthorize("hasRole('CLIENT')")
+
     @GetMapping("/balance")
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<Double> getBalance() {
         return ResponseEntity.ok(cardService.getBalance());
     }
@@ -73,13 +78,14 @@ public class CardController {
     /**
      * Actualiza la información de la tarjeta asociada al usuario autenticado.
      *
-     * @param dto DTO con los nuevos datos para la tarjeta.
+     * @param entity DTO con los nuevos datos para la tarjeta.
      * @return ResponseEntity con el detalle actualizado de la tarjeta.
      */
-    @PreAuthorize("hasRole('CLIENT')")
+
     @PutMapping
-    public ResponseEntity<CardDetailDTO> updateCard(@RequestBody @Valid CardRequestDTO dto) {
-        return ResponseEntity.ok(cardService.updateAuthenticatedUserCard(dto));
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<CardDetailDTO> updateCard(@RequestBody @Valid CardRequestDTO entity) {
+        return ResponseEntity.ok(cardService.updateAuthenticatedUserCard(entity));
     }
 
     /**
@@ -87,12 +93,12 @@ public class CardController {
      *
      * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
      */
-    @PreAuthorize("hasRole('CLIENT')")
+
     @DeleteMapping
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<Void> deleteCard() {
         cardService.deleteFromAuthenticatedUser();
         return ResponseEntity.noContent().build();
     }
-
 }
 

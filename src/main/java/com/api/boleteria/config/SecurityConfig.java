@@ -11,45 +11,74 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration                    // Define clase de configuración
-@EnableWebSecurity                // Activar seguridad web
+/**
+ * Clase de configuración de seguridad para la aplicación.
+ *
+ * Define las reglas de seguridad HTTP, deshabilita CSRF, login por formulario y HTTP Basic,
+ * configura el manejo de sesiones como stateless, y establece permisos y autenticación para rutas específicas.
+ * También registra el filtro JwtAuthFilter para validar tokens JWT en cada solicitud.
+ */
+
+@Configuration
+@EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    /**
+     * Configura la cadena de filtros de seguridad HTTP.
+     *
+     * @param http objeto HttpSecurity para configurar la seguridad HTTP.
+     * @return SecurityFilterChain configurada con reglas y filtros definidos.
+     * @throws Exception si ocurre un error en la configuración.
+     */
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // 1. CSRF OFF: no hay sesión
-                .formLogin(form -> form.disable()) // 2. FormLogin OFF
-                .httpBasic(basic -> basic.disable()) // 3. HTTP Basic OFF
+                .csrf(csrf -> csrf.disable())
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
 
-                .sessionManagement(sm -> // 4. Gestión de sesiones
+                .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/cinema/**").hasAnyRole("ADMIN", "CLIENT")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/client/**").hasRole("CLIENT")
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/cinemas/**").authenticated()
+                        .requestMatchers("/api/movies/**").authenticated()
+                        .requestMatchers("/api/functions/**").authenticated()
+                        .requestMatchers("/api/card/**").authenticated()
+                        .requestMatchers("/api/tickets/**").authenticated()
+                        .requestMatchers("/api/userManagement/**").authenticated()
                         .anyRequest().authenticated())
 
-                .addFilterBefore(jwtAuthFilter(), // 5. Insertar filtro JWT
+                .addFilterBefore(jwtAuthFilter(),
                         UsernamePasswordAuthenticationFilter.class);
 
-        return http.build(); // Construir cadena de filtros
+        return http.build();
     }
+
+    /**
+     * Crea un bean del filtro JwtAuthFilter para validar tokens JWT.
+     *
+     * @return instancia de JwtAuthFilter.
+     */
 
     @Bean
-    public JwtAuthFilter jwtAuthFilter() {
-        return new JwtAuthFilter(); // Instancia de nuestro filtro personalizado
-    }
+    public JwtAuthFilter jwtAuthFilter() {return new JwtAuthFilter();}
 
 
-    // Necesario si más adelante se usa AuthenticationManager (opcional por ahora)
+    /**
+     * Proporciona el AuthenticationManager necesario para la autenticación.
+     *
+     * @param config configuración de autenticación de Spring.
+     * @return AuthenticationManager configurado.
+     * @throws Exception si ocurre un error al obtener el AuthenticationManager.
+     */
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
 
 }

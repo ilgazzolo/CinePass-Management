@@ -6,6 +6,7 @@ import com.api.boleteria.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,30 +31,32 @@ public class AuthController {
     /**
      * Autentica a un usuario con las credenciales proporcionadas.
      *
-     * @param req DTO con username y password para autenticación.
+     * @param entity DTO con username y password para autenticación.
      * @return ResponseEntity con un mapa que contiene el token JWT u otra información de sesión.
      */
+
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDTO req) {
-        return ResponseEntity.ok(userService.login(req, authManager));
+    @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDTO entity) {
+        return ResponseEntity.ok(userService.login(entity, authManager));
     }
 
     /**
      * Registra un nuevo usuario en el sistema.
      *
-     * @param req DTO con los datos para registrar al usuario.
+     * @param entity DTO con los datos para registrar al usuario.
      * @return ResponseEntity con mensaje de éxito o conflicto si el username ya existe.
      */
+
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO req) {
-        // Validar si username o email ya existen
-        if (userService.existsByUsername(req.getUsername())) {
+    @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
+    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO entity) {
+
+        if (userService.existsByUsername(entity.getUsername())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username ya en uso");
         }
 
-        userService.save(req);
-
+        userService.save(entity);
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado con éxito");
     }
-
 }

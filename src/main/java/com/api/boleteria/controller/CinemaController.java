@@ -22,6 +22,7 @@ import java.util.List;
  *
  * La mayoría de las operaciones están restringidas a usuarios con rol ADMIN.
  */
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/cinemas")
@@ -48,14 +49,15 @@ public class CinemaController {
      * @return ResponseEntity con una lista de DTOs de cines o un 204 No Content si no hay cines.
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<CinemaListDTO>> getList(){
-        List<CinemaListDTO> lista = cinemaService.findAll();
+        List<CinemaListDTO> list = cinemaService.findAll();
 
-        if(lista.isEmpty()){
+        if(list.isEmpty()){
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(lista);
+
+        return ResponseEntity.ok(list);
     }
 
     /**
@@ -64,8 +66,9 @@ public class CinemaController {
      * @param id Identificador del cine.
      * @return ResponseEntity con el detalle del cine solicitado.
      */
+
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<CinemaDetailDTO> getById(@PathVariable Long id){
         return ResponseEntity.ok(cinemaService.findById(id));
     }
@@ -76,46 +79,51 @@ public class CinemaController {
      * @param screenType Tipo de pantalla para filtrar.
      * @return ResponseEntity con la lista de cines o 204 No Content si no hay coincidencias.
      */
-    @GetMapping("/ScreenType/{screenType}")
-    public ResponseEntity<List<CinemaListDTO>> getByScreenType(@PathVariable ScreenType screenType){
-        List<CinemaListDTO> lista = cinemaService.findByScreenType(screenType);
 
-        if(lista.isEmpty()){
+    @GetMapping("/ScreenType/{screenType}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<List<CinemaListDTO>> getByScreenType(@PathVariable ScreenType screenType){
+        List<CinemaListDTO> list = cinemaService.findByScreenType(screenType);
+
+        if(list.isEmpty()){
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(list);
     }
 
     /**
      * Obtiene la lista de cines filtrados por estado habilitado de la sala.
      *
-     * @param habilitada Estado habilitado para filtrar (true o false).
+     * @param enabled Estado habilitado para filtrar (true o false).
      * @return ResponseEntity con la lista de cines o 204 No Content si no hay coincidencias.
      */
-    @GetMapping("/Enabled/{habilitada}")
-    public ResponseEntity<List<CinemaListDTO>> getByEnabledRoom(@PathVariable boolean habilitada){
-        List<CinemaListDTO> lista = cinemaService.findByEnabledRoom(habilitada);
 
-        if(lista.isEmpty()){
+    @GetMapping("/Enabled/{enabled}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<List<CinemaListDTO>> getByEnabledRoom(@PathVariable boolean enabled){
+        List<CinemaListDTO> list = cinemaService.findByEnabledRoom(enabled);
+
+        if(list.isEmpty()){
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(list);
     }
 
     /**
      * Obtiene la lista de cines filtrados por capacidad de asientos.
      *
-     * @param capacidad Capacidad de asientos para filtrar.
+     * @param capacity Capacidad de asientos para filtrar.
      * @return ResponseEntity con la lista de cines o 204 No Content si no hay coincidencias.
      */
-    @GetMapping("/Capacity/{capacidad}")
-    public ResponseEntity<List<CinemaListDTO>> getBySeatCapacity(@PathVariable Integer capacidad){
-        List<CinemaListDTO> lista = cinemaService.findBySeatCapacity(capacidad);
 
-        if(lista.isEmpty()){
+    @GetMapping("/Capacity/{capacity}")
+    public ResponseEntity<List<CinemaListDTO>> getBySeatCapacity(@PathVariable Integer capacity){
+        List<CinemaListDTO> list = cinemaService.findBySeatCapacity(capacity);
+
+        if(list.isEmpty()){
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(list);
     }
 
     /**
