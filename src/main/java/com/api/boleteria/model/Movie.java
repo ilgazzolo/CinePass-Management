@@ -32,7 +32,7 @@ public class Movie {
     private String director;
 
     @Column(nullable = false)
-    private String ageRating;
+    private String classification;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String synopsis;

@@ -44,7 +44,7 @@ public class MovieService {
         movie.setDuration(req.getDuration());
         movie.setMovieGenre(req.getGenre());
         movie.setDirector(req.getDirector());
-        movie.setAgeRating(req.getRating());
+        movie.setClassification(req.getRating());
         movie.setSynopsis(req.getSynopsis());
         //movie.setFunctionList(functionList);
 
@@ -56,7 +56,7 @@ public class MovieService {
                 saved.getDuration(),
                 saved.getMovieGenre(),
                 saved.getDirector(),
-                saved.getAgeRating(),
+                saved.getClassification(),
                 saved.getSynopsis(),
                 saved.getFunctions().stream()
                         .map(Function::getId)
@@ -124,7 +124,7 @@ public class MovieService {
                 m.getDuration(),
                 m.getMovieGenre(),
                 m.getDirector(),
-                m.getAgeRating(),
+                m.getClassification(),
                 m.getSynopsis(),
                 m.getFunctions().stream()
                         .map(Function::getId)
@@ -136,20 +136,20 @@ public class MovieService {
     /**
      * actualiza una pelicula, segun un ID especificado
      * @param id ID de la pelicula a actualizar
-     * @param entity DTO con los cambios realizados
+     * @param req DTO con los cambios realizados
      * @return MovieDetail con la informacion de la pelicula actualizada
      */
-    public MovieDetailDTO updateById(Long id, MovieRequestDTO entity){
+    public MovieDetailDTO updateById(Long id, MovieRequestDTO req){
         return movieRepository.findById(id).
                 map(movie -> {
-                    movie.setTitle(entity.getTitle());
-                    movie.setDuration(entity.getDuration());
-                    movie.setMovieGenre(entity.getGenre());
-                    movie.setDirector(entity.getDirector());
-                    movie.setAgeRating(entity.getRating());
-                    movie.setSynopsis(entity.getSynopsis());
+                    movie.setTitle(req.getTitle());
+                    movie.setDuration(req.getDuration());
+                    movie.setMovieGenre(req.getGenre());
+                    movie.setDirector(req.getDirector());
+                    movie.setClassification(req.getRating());
+                    movie.setSynopsis(req.getSynopsis());
 
-                    List<Function> functions = functionRepository.findAllById(entity.getFunctionListId());
+                    List<Function> functions = functionRepository.findAllById(req.getFunctionListId());
 
                     movie.setFunctions(functions);
 
@@ -161,7 +161,7 @@ public class MovieService {
                             update.getDuration(),
                             update.getMovieGenre(),
                             update.getDirector(),
-                            update.getAgeRating(),
+                            update.getClassification(),
                             update.getSynopsis(),
                             update.getFunctions().stream()
                                     .map(Function::getId)

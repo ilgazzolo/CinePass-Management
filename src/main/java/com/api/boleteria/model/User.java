@@ -41,6 +41,8 @@ public class User {
     @JsonManagedReference
     private List<Ticket> tickets = new ArrayList<>();
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Card card;
 
     public User(String name, String surname, String username, String email, String password) {
         this.name = name;
