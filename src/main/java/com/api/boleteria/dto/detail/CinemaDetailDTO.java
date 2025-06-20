@@ -1,6 +1,6 @@
 package com.api.boleteria.dto.detail;
 
-import com.api.boleteria.model.ScreenType;
+import com.api.boleteria.model.enums.ScreenType;
 
 public record CinemaDetailDTO (
         Long id,

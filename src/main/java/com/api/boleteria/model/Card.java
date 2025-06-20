@@ -1,5 +1,6 @@
 package com.api.boleteria.model;
 
+import com.api.boleteria.model.enums.CardType;
 import jakarta.persistence.*;
 import lombok.*;
 

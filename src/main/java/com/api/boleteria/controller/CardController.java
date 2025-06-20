@@ -25,17 +25,8 @@ public class CardController {
 
     private final CardService cardService;
 
-    /**
-     * Obtiene la tarjeta asociada al usuario actualmente autenticado.
-     *
-     * @return ResponseEntity con el detalle de la tarjeta.
-     */
 
-    @GetMapping
-    @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<CardDetailDTO> getCard() {
-        return ResponseEntity.ok(cardService.findFromAuthenticatedUser());
-    }
+     //-------------------------------CREATE--------------------------------//
 
     /**
      * Crea una nueva tarjeta para el usuario autenticado.
@@ -46,21 +37,24 @@ public class CardController {
 
     @PostMapping
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<CardDetailDTO> createCard(@RequestBody @Valid CardRequestDTO entity) {
+    public ResponseEntity<CardDetailDTO> create(@RequestBody @Valid CardRequestDTO entity) {
         return ResponseEntity.ok(cardService.save(entity));
     }
 
+
+
+    //-------------------------------GET--------------------------------//
+
     /**
-     * Recarga el saldo de la tarjeta del usuario autenticado con el monto especificado.
+     * Obtiene la tarjeta asociada al usuario actualmente autenticado.
      *
-     * @param amount Monto a recargar en la tarjeta.
-     * @return ResponseEntity con el detalle actualizado de la tarjeta.
+     * @return ResponseEntity con el detalle de la tarjeta.
      */
 
-    @PatchMapping("/recharge")
+    @GetMapping
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<CardDetailDTO> recharge(@RequestParam Double amount) {
-        return ResponseEntity.ok(cardService.rechargeBalance(amount));
+    public ResponseEntity<CardDetailDTO> get() {
+        return ResponseEntity.ok(cardService.findFromAuthenticatedUser());
     }
 
     /**
@@ -75,6 +69,10 @@ public class CardController {
         return ResponseEntity.ok(cardService.getBalance());
     }
 
+
+
+    //-------------------------------UPDATE--------------------------------//
+
     /**
      * Actualiza la información de la tarjeta asociada al usuario autenticado.
      *
@@ -84,9 +82,27 @@ public class CardController {
 
     @PutMapping
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<CardDetailDTO> updateCard(@RequestBody @Valid CardRequestDTO entity) {
+    public ResponseEntity<CardDetailDTO> update(@RequestBody @Valid CardRequestDTO entity) {
         return ResponseEntity.ok(cardService.updateAuthenticatedUserCard(entity));
     }
+
+
+    /**
+     * Recarga el saldo de la tarjeta del usuario autenticado con el monto especificado.
+     *
+     * @param amount Monto a recargar en la tarjeta.
+     * @return ResponseEntity con el detalle actualizado de la tarjeta.
+     */
+
+    @PatchMapping("/recharge")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<CardDetailDTO> recharge(@RequestParam Double amount) {
+        return ResponseEntity.ok(cardService.rechargeBalance(amount));
+    }
+
+
+
+    //-------------------------------DELETE--------------------------------//
 
     /**
      * Elimina la tarjeta asociada al usuario autenticado.
@@ -96,7 +112,7 @@ public class CardController {
 
     @DeleteMapping
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<Void> deleteCard() {
+    public ResponseEntity<Void> delete() {
         cardService.deleteFromAuthenticatedUser();
         return ResponseEntity.noContent().build();
     }

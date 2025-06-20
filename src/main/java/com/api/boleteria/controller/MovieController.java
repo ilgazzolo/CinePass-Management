@@ -33,6 +33,8 @@ public class MovieController {
     @Autowired
     private MovieService movieService;
 
+
+    //-------------------------------CREATE--------------------------------//
     /**
      * Registra una o más películas.
      *
@@ -48,6 +50,9 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.CREATED).body(movieService.createAll(entity));
     }
 
+
+
+    //-------------------------------GET--------------------------------//
     /**
      * Obtiene la lista de todas las películas.
      *
@@ -56,12 +61,8 @@ public class MovieController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<MovieListDTO>> getAll(){
-        List<MovieListDTO> movieList = movieService.findAll();
-        if (movieList.isEmpty()){
-            throw new RuntimeException("Null");
-        }
-        return ResponseEntity.ok(movieList);
+    public ResponseEntity<List<MovieListDTO>> getAll() {
+        return ResponseEntity.ok(movieService.findAll());
     }
 
     /**
@@ -78,18 +79,20 @@ public class MovieController {
     }
 
     /**
-     * Elimina una película por su ID.
+     * Obtiene la lista de películas filtradas por género.
      *
-     * @param id Identificador de la película a eliminar.
-     * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
+     * @param genre Género para filtrar las películas.
+     * @return ResponseEntity con la lista de películas que coinciden con el género.
      */
 
-    @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete (@PathVariable Long id){
-        movieService.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/genre/{genre}")
+    public ResponseEntity<List<MovieListDTO>> getByGenre(@PathVariable String genre) {
+        return ResponseEntity.ok(movieService.findByMovieGenre(genre));
     }
+
+
+
+    //-------------------------------UPDATE--------------------------------//
 
     /**
      * Actualiza una película por su ID.
@@ -105,15 +108,21 @@ public class MovieController {
         return ResponseEntity.ok(movieService.updateById(id, entity));
     }
 
+
+
+    //-------------------------------DELETE--------------------------------//
+
     /**
-     * Obtiene la lista de películas filtradas por género.
+     * Elimina una película por su ID.
      *
-     * @param genre Género para filtrar las películas.
-     * @return ResponseEntity con la lista de películas que coinciden con el género.
+     * @param id Identificador de la película a eliminar.
+     * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
      */
 
-    @GetMapping("/genre/{genre}")
-    public ResponseEntity<List<MovieListDTO>> findByGenre(@PathVariable String genre) {
-        return ResponseEntity.ok(movieService.findByMovieGenre(genre));
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete (@PathVariable Long id){
+        movieService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

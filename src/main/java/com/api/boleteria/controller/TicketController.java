@@ -25,6 +25,7 @@ public class TicketController {
 
     private final TicketService ticketService;
 
+    //-------------------------------CREATE--------------------------------//
     /**
      * Permite a un usuario con rol CLIENT comprar boletos según la solicitud recibida.
      *
@@ -35,9 +36,12 @@ public class TicketController {
     @PostMapping("/comprar")
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<List<TicketDetailDTO>> buyTicket(@RequestBody @Valid TicketRequestDTO entity) {
-        List<TicketDetailDTO> listTickets = ticketService.buyTickets(entity);
-        return ResponseEntity.ok(listTickets);
+        return ResponseEntity.ok(ticketService.buyTickets(entity));
     }
+
+
+
+    //-------------------------------GET--------------------------------//
 
     /**
      * Obtiene la lista de boletos asociados al usuario autenticado.
@@ -48,8 +52,7 @@ public class TicketController {
     @GetMapping
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<List<TicketDetailDTO>> getTickets() {
-        List<TicketDetailDTO> tickets = ticketService.findTicketsFromAuthenticatedUser();
-        return ResponseEntity.ok(tickets);
+        return ResponseEntity.ok(ticketService.findTicketsFromAuthenticatedUser());
     }
 
     /**
@@ -61,8 +64,7 @@ public class TicketController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<TicketDetailDTO> getTicketById(@PathVariable Long id) {
-        TicketDetailDTO dto = ticketService.findTicketById(id);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ticketService.findTicketById(id));
     }
 
 }

@@ -1,7 +1,7 @@
 package com.api.boleteria.validators;
 
 import com.api.boleteria.dto.request.CardRequestDTO;
-import com.api.boleteria.model.CardType;
+import com.api.boleteria.model.enums.CardType;
 import org.springframework.stereotype.Service;
 
 import java.time.YearMonth;

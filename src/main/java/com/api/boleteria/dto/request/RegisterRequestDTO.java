@@ -1,6 +1,6 @@
 package com.api.boleteria.dto.request;
 
-import com.api.boleteria.model.Role;
+import com.api.boleteria.model.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

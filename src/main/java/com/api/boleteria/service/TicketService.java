@@ -40,22 +40,8 @@ public class TicketService {
 
     public static final double TICKET_PRICE = 2500.0;
 
-    /**
-     * Convierte una entidad Ticket a un DTO detallado.
-     * @param ticket entidad de ticket a convertir
-     * @return TicketDetailDTO con los datos relevantes del ticket
-     */
-    private TicketDetailDTO mapToDetailDTO(Ticket ticket) {
-        return new TicketDetailDTO(
-                ticket.getId(),
-                ticket.getPurchaseDateTime().toLocalDate().toString(),
-                ticket.getFunction().getMovie().getTitle(),
-                ticket.getFunction().getCinema().getId(),
-                ticket.getPurchaseDateTime().toLocalTime().toString(),
-                ticket.getTicketPrice()
-        );
-    }
 
+    //-------------------------------SAVE--------------------------------//
 
     /**
      * Crea uno o varios tickets para una función específica.
@@ -78,7 +64,7 @@ public class TicketService {
     public List<TicketDetailDTO> buyTickets(TicketRequestDTO dto) {
         TicketValidator.validateFields(dto);
 
-        User user = userService.getAuthenticatedUser();
+        User user = userService.findAuthenticatedUser();
 
         Function function = functionRepository.findById(dto.getFunctionId())
                 .orElseThrow(() -> new NotFoundException("Función no encontrada."));
@@ -96,14 +82,8 @@ public class TicketService {
         functionRepository.save(function);
 
         List<Ticket> createdTickets = IntStream.range(0, dto.getQuantity())
-                .mapToObj(i -> {
-                    Ticket ticket = new Ticket();
-                    ticket.setTicketPrice(TICKET_PRICE);
-                    ticket.setPurchaseDateTime(LocalDateTime.now());
-                    ticket.setUser(user);
-                    ticket.setFunction(function);
-                    return ticketRepository.save(ticket);
-                })
+                .mapToObj(i -> mapToEntity(user, function))
+                .map(ticketRepository::save)
                 .toList();
 
         user.getTickets().addAll(createdTickets);
@@ -116,13 +96,16 @@ public class TicketService {
 
 
 
+
+    //-------------------------------FIND--------------------------------//
+
     /**
      * Obtiene todos los tickets asociados al usuario autenticado.
      *
      * @return Lista de TicketDetailDTO con los tickets del usuario.
      */
     public List<TicketDetailDTO> findTicketsFromAuthenticatedUser() {
-        User user = userService.getAuthenticatedUser();
+        User user = userService.findAuthenticatedUser();
 
         return user.getTickets().stream()
                 .map(this::mapToDetailDTO)
@@ -137,7 +120,7 @@ public class TicketService {
      * @throws AccesDeniedException si el ticket no pertenece al usuario autenticado.
      */
     public TicketDetailDTO findTicketById(Long ticketId) {
-        User user = userService.getAuthenticatedUser();
+        User user = userService.findAuthenticatedUser();
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new NotFoundException("No se encontró el ticket con ID: " + ticketId));
@@ -148,4 +131,34 @@ public class TicketService {
 
         return mapToDetailDTO(ticket);
     }
+
+
+
+    //-------------------------------MAPS--------------------------------//
+
+    /**
+     * Convierte una entidad Ticket a un DTO detallado.
+     * @param ticket entidad de ticket a convertir
+     * @return TicketDetailDTO con los datos relevantes del ticket
+     */
+    private TicketDetailDTO mapToDetailDTO(Ticket ticket) {
+        return new TicketDetailDTO(
+                ticket.getId(),
+                ticket.getPurchaseDateTime().toLocalDate().toString(),
+                ticket.getFunction().getMovie().getTitle(),
+                ticket.getFunction().getCinema().getId(),
+                ticket.getPurchaseDateTime().toLocalTime().toString(),
+                ticket.getTicketPrice()
+        );
+    }
+
+    private Ticket mapToEntity(User user, Function function) {
+        Ticket ticket = new Ticket();
+        ticket.setTicketPrice(TICKET_PRICE);
+        ticket.setPurchaseDateTime(LocalDateTime.now());
+        ticket.setUser(user);
+        ticket.setFunction(function);
+        return ticket;
+    }
+
 }

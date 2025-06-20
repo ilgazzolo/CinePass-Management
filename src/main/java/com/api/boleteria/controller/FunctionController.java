@@ -3,7 +3,7 @@ package com.api.boleteria.controller;
 import com.api.boleteria.dto.detail.FunctionDetailDTO;
 import com.api.boleteria.dto.list.FunctionListDTO;
 import com.api.boleteria.dto.request.FunctionRequestDTO;
-import com.api.boleteria.model.ScreenType;
+import com.api.boleteria.model.enums.ScreenType;
 import com.api.boleteria.service.FunctionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +28,8 @@ import java.util.List;
 public class FunctionController {
     private final FunctionService functionService;
 
+
+    //-------------------------------CREATE--------------------------------//
     /**
      * Crea una o varias funciones nuevas.
      *
@@ -37,10 +39,12 @@ public class FunctionController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<FunctionDetailDTO>> create(@Valid @RequestBody List<FunctionRequestDTO> entities) {
-        List<FunctionDetailDTO> createdFunctions = functionService.createAll(entities);
-        return ResponseEntity.ok(createdFunctions);
+        return ResponseEntity.ok(functionService.createAll(entities));
     }
 
+
+
+    //-------------------------------GET--------------------------------//
 
     /**
      * Obtiene la lista de todas las funciones.
@@ -50,11 +54,7 @@ public class FunctionController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getAll() {
-        List<FunctionListDTO> list = functionService.findAll();
-        if (list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(functionService.findAll());
     }
 
     /**
@@ -70,17 +70,33 @@ public class FunctionController {
     }
 
     /**
-     * Elimina una función por su ID.
+     * Obtiene la lista de funciones disponibles para una película específica,
+     * filtrando por capacidad disponible.
      *
-     * @param id Identificador de la función a eliminar.
-     * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
+     * @param movieId Identificador de la película.
+     * @return ResponseEntity con la lista de funciones disponibles.
      */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete (@PathVariable Long id){
-        functionService.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/disponibles/{movieId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<List<FunctionListDTO>> getAvailableFunctionsPerMovie(@PathVariable Long movieId) {
+        return ResponseEntity.ok(functionService.findByMovieIdAndAvailableCapacity(movieId));
     }
+
+    /**
+     * Obtiene la lista de funciones filtradas por tipo de pantalla.
+     *
+     * @param screenType Tipo de pantalla para filtrar las funciones.
+     * @return ResponseEntity con la lista de funciones que coinciden con el tipo de pantalla.
+     */
+    @GetMapping("/tipo-pantalla/{screenType}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<List<FunctionListDTO>> getByScreenType(@PathVariable ScreenType screenType) {
+        return ResponseEntity.ok(functionService.findByScreenType(screenType));
+    }
+
+
+
+    //-------------------------------UPDATE--------------------------------//
 
     /**
      * Actualiza una función por su ID.
@@ -95,31 +111,20 @@ public class FunctionController {
         return ResponseEntity.ok(functionService.updateById(id, entity));
     }
 
-    /**
-     * Obtiene la lista de funciones disponibles para una película específica,
-     * filtrando por capacidad disponible.
-     *
-     * @param movieId Identificador de la película.
-     * @return ResponseEntity con la lista de funciones disponibles.
-     */
-    @GetMapping("/disponibles/{movieId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<FunctionListDTO>> getAvailableFunctionsPerMovie(@PathVariable Long movieId) {
-        List<FunctionListDTO> function = functionService.findByMovieIdAndAvailableCapacity(movieId);
-        return ResponseEntity.ok(function);
-    }
+
+
+    //-------------------------------DELETE--------------------------------//
 
     /**
-     * Obtiene la lista de funciones filtradas por tipo de pantalla.
+     * Elimina una función por su ID.
      *
-     * @param screenType Tipo de pantalla para filtrar las funciones.
-     * @return ResponseEntity con la lista de funciones que coinciden con el tipo de pantalla.
+     * @param id Identificador de la función a eliminar.
+     * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
      */
-    @GetMapping("/tipo-pantalla/{screenType}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<FunctionListDTO>> getByScreenType(@PathVariable ScreenType screenType) {
-        List<FunctionListDTO> function = functionService.findByScreenType(screenType);
-        return ResponseEntity.ok(function);
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete (@PathVariable Long id){
+        functionService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
-
 }

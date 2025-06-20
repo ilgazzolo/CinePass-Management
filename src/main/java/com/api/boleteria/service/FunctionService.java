@@ -6,7 +6,7 @@ import com.api.boleteria.dto.request.FunctionRequestDTO;
 import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Cinema;
-import com.api.boleteria.model.ScreenType;
+import com.api.boleteria.model.enums.ScreenType;
 import com.api.boleteria.model.Function;
 import com.api.boleteria.model.Movie;
 import com.api.boleteria.repository.ICinemaRepository;
@@ -33,36 +33,8 @@ public class FunctionService {
     private final ICinemaRepository cinemaRepo;
     private final IMovieRepository movieRepo;
 
-    /**
-     * Convierte una entidad Function en un DTO de detalle.
-     * @param function entidad Function
-     * @return FunctionDetailDTO con los datos detallados de la función
-     */
-    private FunctionDetailDTO mapToDetailDTO(Function function) {
-        return new FunctionDetailDTO(
-                function.getId(),
-                function.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
-                function.getCinema().getId(),
-                function.getMovie().getId(),
-                function.getMovie().getTitle()
-        );
-    }
 
-    /**
-     * Convierte una entidad Function en un DTO de lista.
-     * @param function entidad Function
-     * @return FunctionListDTO con los datos resumidos de la función
-     */
-    private FunctionListDTO mapToListDTO(Function function) {
-        return new FunctionListDTO(
-                function.getId(),
-                function.getShowtime().toLocalDate(),
-                function.getShowtime().toLocalTime(),
-                function.getCinema().getId(),
-                function.getMovie().getTitle(),
-                function.getAvailableCapacity()
-        );
-    }
+    //-------------------------------SAVE--------------------------------//
 
     /**
      * Crea una o varias funciones, validando para cada una que no exista función en la misma sala y horario,
@@ -96,11 +68,7 @@ public class FunctionService {
             List<Function> functionsInTheCinema = functionRepo.findByCinemaId(entity.getCinemaId());
             FunctionValidator.validateSchedule(entity, movie, functionsInTheCinema);
 
-            Function function = new Function();
-            function.setShowtime(entity.getShowtime());
-            function.setCinema(cinema);
-            function.setAvailableCapacity(cinema.getSeatCapacity());
-            function.setMovie(movie);
+            Function function = mapToEntity(entity, cinema, movie);
 
             Function saved = functionRepo.save(function);
             movie.getFunctions().add(saved);
@@ -113,14 +81,23 @@ public class FunctionService {
     }
 
 
+
+    //-------------------------------FIND--------------------------------//
+
     /**
      * muestra todas las funciones
      * @return Lista de FunctionList con la informacion de las funciones encontradas
      */
     public List<FunctionListDTO> findAll() {
-        return functionRepo.findAll().stream()
+        List<FunctionListDTO> list = functionRepo.findAll().stream()
                 .map(this::mapToListDTO)
                 .toList();
+
+        if (list.isEmpty()) {
+            throw new NotFoundException("No hay funciones registradas.");
+        }
+
+        return list;
     }
 
     /**
@@ -134,7 +111,47 @@ public class FunctionService {
 
         return mapToDetailDTO(function);
     }
+    /**
+     * muestra solo las proximas funciones de una pelicula segun su ID
+     * @param movieId id de la pelicula que se desea mostrar sus funciones
+     * @return Lista de FunctionListDTO con la informacion de las funciones encontradas
+     */
+    public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
+        List<Function> functions = functionRepo
+                .findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
+                        movieId, 0, LocalDateTime.now());
 
+        return functions.stream()
+                .map(this::mapToListDTO)
+                .toList();
+    }
+
+    /**
+     * muestra las funciones segun un tipo de pantalla especificado
+     * @param screenType tipo de pantalla especificado
+     * @return Lista de Funciones encontradas
+     */
+    public List<FunctionListDTO> findByScreenType(ScreenType screenType) {
+        if (screenType == null) {
+            throw new BadRequestException("Debe especificar un tipo de pantalla.");
+        }
+
+        List<Function> functions = functionRepo
+                .findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
+                        screenType, 0, LocalDateTime.now());
+
+        if (functions.isEmpty()) {
+            throw new NotFoundException("No hay funciones disponibles para el tipo de pantalla: " + screenType.name());
+        }
+
+        return functions.stream()
+                .map(this::mapToListDTO)
+                .toList();
+    }
+
+
+
+    //-------------------------------UPDATE--------------------------------//
     /**
      * actualiza una funcion segun el ID especificado
      * @param id de la funcion a modificar
@@ -173,6 +190,10 @@ public class FunctionService {
                 .orElseThrow(() -> new NotFoundException("La funcion con ID: " + id + " no fue encontrada."));
     }
 
+
+
+    //-------------------------------DELETE--------------------------------//
+
     /**
      * elimina una funcion segun un ID especificado
      * @param id de la funcion a eliminar
@@ -184,41 +205,48 @@ public class FunctionService {
         functionRepo.deleteById(id);
     }
 
-    /**
-     * muestra solo las proximas funciones de una pelicula segun su ID
-     * @param movieId id de la pelicula que se desea mostrar sus funciones
-     * @return Lista de FunctionListDTO con la informacion de las funciones encontradas
-     */
-    public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
-        List<Function> functions = functionRepo
-                .findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
-                        movieId, 0, LocalDateTime.now());
 
-        return functions.stream()
-                .map(this::mapToListDTO)
-                .toList();
+
+    //-------------------------------MAPS--------------------------------//
+
+    /**
+     * Convierte una entidad Function en un DTO de detalle.
+     * @param function entidad Function
+     * @return FunctionDetailDTO con los datos detallados de la función
+     */
+    private FunctionDetailDTO mapToDetailDTO(Function function) {
+        return new FunctionDetailDTO(
+                function.getId(),
+                function.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
+                function.getCinema().getId(),
+                function.getMovie().getId(),
+                function.getMovie().getTitle()
+        );
     }
 
     /**
-     * muestra las funciones segun un tipo de pantalla especificado
-     * @param screenType tipo de pantalla especificado
-     * @return Lista de Funciones encontradas
+     * Convierte una entidad Function en un DTO de lista.
+     * @param function entidad Function
+     * @return FunctionListDTO con los datos resumidos de la función
      */
-    public List<FunctionListDTO> findByScreenType(ScreenType screenType) {
-        if (screenType == null) {
-            throw new BadRequestException("Debe especificar un tipo de pantalla.");
-        }
-
-        List<Function> functions = functionRepo
-                .findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
-                        screenType, 0, LocalDateTime.now());
-
-        if (functions.isEmpty()) {
-            throw new NotFoundException("No hay funciones disponibles para el tipo de pantalla: " + screenType.name());
-        }
-
-        return functions.stream()
-                .map(this::mapToListDTO)
-                .toList();
+    private FunctionListDTO mapToListDTO(Function function) {
+        return new FunctionListDTO(
+                function.getId(),
+                function.getShowtime().toLocalDate(),
+                function.getShowtime().toLocalTime(),
+                function.getCinema().getId(),
+                function.getMovie().getTitle(),
+                function.getAvailableCapacity()
+        );
     }
+
+    private Function mapToEntity(FunctionRequestDTO entity, Cinema cinema, Movie movie) {
+        Function function = new Function();
+        function.setShowtime(entity.getShowtime());
+        function.setCinema(cinema);
+        function.setAvailableCapacity(cinema.getSeatCapacity());
+        function.setMovie(movie);
+        return function;
+    }
+
 }

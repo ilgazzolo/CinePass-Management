@@ -1,5 +1,6 @@
 package com.api.boleteria.model;
 
+import com.api.boleteria.model.enums.Role;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,6 +45,8 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Card card;
 
+
+    //CONSTRUCTOR CON ROL AUTOMATICO
     public User(String name, String surname, String username, String email, String password) {
         this.name = name;
         this.surname = surname;

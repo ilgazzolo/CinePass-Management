@@ -3,6 +3,7 @@ package com.api.boleteria.controller;
 import com.api.boleteria.dto.request.LoginRequestDTO;
 import com.api.boleteria.dto.request.RegisterRequestDTO;
 import com.api.boleteria.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,7 @@ public class AuthController {
      */
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDTO entity) {
+    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequestDTO entity) {
         return ResponseEntity.ok(userService.login(entity, authManager));
     }
 
@@ -48,13 +49,9 @@ public class AuthController {
      */
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO entity) {
-
-        if (userService.existsByUsername(entity.getUsername())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username ya en uso");
-        }
-
+    public ResponseEntity<String> register(@RequestBody @Valid RegisterRequestDTO entity) {
         userService.save(entity);
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado con éxito");
     }
+
 }

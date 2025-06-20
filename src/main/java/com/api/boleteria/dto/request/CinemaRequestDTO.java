@@ -1,6 +1,6 @@
 package com.api.boleteria.dto.request;
 
-import com.api.boleteria.model.ScreenType;
+import com.api.boleteria.model.enums.ScreenType;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;

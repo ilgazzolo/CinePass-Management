@@ -26,6 +26,127 @@ public class MovieService {
     private final IMovieRepository movieRepository;
     private final IFunctionRepository functionRepository;
 
+
+    //-------------------------------SAVE--------------------------------//
+
+    /**
+     * Crea una o más películas a partir de una lista de DTOs.
+     *
+     * Valida cada película antes de ser persistida, asegurándose de que no existan duplicados por título.
+     *
+     * @param requests Lista de DTOs con los datos de las películas a crear.
+     * @return Lista de MovieDetailDTO con la información de las películas creadas.
+     * @throws BadRequestException si alguna película ya existe o los datos son inválidos.
+     */
+    public List<MovieDetailDTO> createAll(List<MovieRequestDTO> requests) {
+        List<Movie> moviesToSave = new ArrayList<>();
+
+        for (MovieRequestDTO req : requests) {
+            MovieValidator.validateFields(req);
+
+            String title = req.getTitle().trim();
+
+            if (movieRepository.existsByTitle(title)) {
+                throw new BadRequestException("Ya existe una película con el título: " + title);
+            }
+
+            moviesToSave.add(mapToEntity(req));
+        }
+
+        List<Movie> saved = movieRepository.saveAll(moviesToSave);
+
+        return saved.stream()
+                .map(this::mapToDetailDTO)
+                .toList();
+    }
+
+
+
+    //-------------------------------FIND--------------------------------//
+
+    /**
+     * muestra todas las peliculas asociadas a un genero en especifico
+     * @param genre genero de la pelicula a mostrar
+     * @return lista de MovieList con la informacion de las peliculas encontradas
+     */
+    public List<MovieListDTO> findByMovieGenre(String genre) {
+        return movieRepository.findByMovieGenre(genre).stream()
+                .map(this::mapToListDTO)
+                .toList();
+    }
+
+    /**
+     * obtiene todas las peliculas cargadas
+     * @return lista de MovieList con la informacion de las peliculas encontradas
+     */
+    public List<MovieListDTO> findAll() {
+        List<MovieListDTO> movieList = movieRepository.findAll().stream()
+                .map(this::mapToListDTO)
+                .toList();
+
+        if (movieList.isEmpty()) {
+            throw new NotFoundException("No hay películas registradas.");
+        }
+
+        return movieList;
+    }
+
+    /**
+     * obtiene una pelicula segun un ID especificado
+     * @param id ID de la pelicula a buscar
+     * @return MovieDetail con la informacion de la pelicula encontrada
+     */
+    public MovieDetailDTO findById(Long id) {
+        Movie m = movieRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("La pelicula con ID: " + id + " no fue encontrada."));
+        return mapToDetailDTO(m);
+    }
+
+
+
+    //-------------------------------UPDATE--------------------------------//
+
+    /**
+     * actualiza una pelicula, segun un ID especificado
+     * @param id ID de la pelicula a actualizar
+     * @param req DTO con los cambios realizados
+     * @return MovieDetail con la informacion de la pelicula actualizada
+     */
+    public MovieDetailDTO updateById(Long id, MovieRequestDTO req) {
+        return movieRepository.findById(id)
+                .map(movie -> {
+                    movie.setTitle(req.getTitle());
+                    movie.setDuration(req.getDuration());
+                    movie.setMovieGenre(req.getGenre());
+                    movie.setDirector(req.getDirector());
+                    movie.setClassification(req.getClassification());
+                    movie.setSynopsis(req.getSynopsis());
+
+                    Movie updated = movieRepository.save(movie);
+                    return mapToDetailDTO(updated);
+                })
+                .orElseThrow(() -> new NotFoundException("La pelicula con ID: " + id + " no fue encontrada."));
+    }
+
+
+
+    //-------------------------------DELETE--------------------------------//
+
+    /**
+     * elimina una pelicula segun un ID especificado
+     * @param id ID de la pelicula a eliminar
+     */
+    public void deleteById(Long id) {
+        if (!movieRepository.existsById(id)) {
+            throw new NotFoundException("La pelicula con ID: " + id + " no fue encontrada.");
+        }
+        movieRepository.deleteById(id);
+    }
+
+
+
+    //-------------------------------MAP--------------------------------//
+
     /**
      * Convierte una entidad Movie en un DTO detallado.
      * @param movie entidad Movie
@@ -61,46 +182,20 @@ public class MovieService {
         );
     }
 
-    /**
-     * Crea una o más películas a partir de una lista de DTOs.
-     *
-     * Valida cada película antes de ser persistida, asegurándose de que no existan duplicados por título.
-     *
-     * @param requests Lista de DTOs con los datos de las películas a crear.
-     * @return Lista de MovieDetailDTO con la información de las películas creadas.
-     * @throws BadRequestException si alguna película ya existe o los datos son inválidos.
-     */
-    public List<MovieDetailDTO> createAll(List<MovieRequestDTO> requests) {
-        List<Movie> moviesToSave = new ArrayList<>();
-
-        for (MovieRequestDTO req : requests) {
-            MovieValidator.validateFields(req);
-
-            String title = req.getTitle().trim();
-
-            if (movieRepository.existsByTitle(title)) {
-                throw new BadRequestException("Ya existe una película con el título: " + title);
-            }
-
-            Movie movie = new Movie();
-            movie.setTitle(title);
-            movie.setDuration(req.getDuration());
-            movie.setMovieGenre(req.getGenre());
-            movie.setDirector(req.getDirector());
-            movie.setClassification(req.getClassification());
-            movie.setSynopsis(req.getSynopsis());
-
-            moviesToSave.add(movie);
-        }
-
-        List<Movie> saved = movieRepository.saveAll(moviesToSave);
-
-        return saved.stream()
-                .map(this::mapToDetailDTO)
-                .toList();
+    private Movie mapToEntity(MovieRequestDTO dto) {
+        Movie movie = new Movie();
+        movie.setTitle(dto.getTitle().trim());
+        movie.setDuration(dto.getDuration());
+        movie.setMovieGenre(dto.getGenre());
+        movie.setDirector(dto.getDirector());
+        movie.setClassification(dto.getClassification());
+        movie.setSynopsis(dto.getSynopsis());
+        return movie;
     }
 
 
+
+    //-------------------------------VERIFY--------------------------------//
 
     /**
      * Verifica si ya existe una película con el título especificado.
@@ -116,72 +211,6 @@ public class MovieService {
             throw new IllegalArgumentException("El título no puede estar vacío.");
         }
         return movieRepository.existsByTitle(title.trim());
-    }
-
-
-    /**
-     * muestra todas las peliculas asociadas a un genero en especifico
-     * @param genre genero de la pelicula a mostrar
-     * @return lista de MovieList con la informacion de las peliculas encontradas
-     */
-    public List<MovieListDTO> findByMovieGenre(String genre) {
-        return movieRepository.findByMovieGenre(genre).stream()
-                .map(this::mapToListDTO)
-                .toList();
-    }
-
-    /**
-     * obtiene todas las peliculas cargadas
-     * @return lista de MovieList con la informacion de las peliculas encontradas
-     */
-    public List<MovieListDTO> findAll() {
-        return movieRepository.findAll().stream()
-                .map(this::mapToListDTO)
-                .toList();
-    }
-
-    /**
-     * obtiene una pelicula segun un ID especificado
-     * @param id ID de la pelicula a buscar
-     * @return MovieDetail con la informacion de la pelicula encontrada
-     */
-    public MovieDetailDTO findById(Long id) {
-        Movie m = movieRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("La pelicula con ID: " + id + " no fue encontrada."));
-        return mapToDetailDTO(m);
-    }
-
-    /**
-     * actualiza una pelicula, segun un ID especificado
-     * @param id ID de la pelicula a actualizar
-     * @param req DTO con los cambios realizados
-     * @return MovieDetail con la informacion de la pelicula actualizada
-     */
-    public MovieDetailDTO updateById(Long id, MovieRequestDTO req) {
-        return movieRepository.findById(id)
-                .map(movie -> {
-                    movie.setTitle(req.getTitle());
-                    movie.setDuration(req.getDuration());
-                    movie.setMovieGenre(req.getGenre());
-                    movie.setDirector(req.getDirector());
-                    movie.setClassification(req.getClassification());
-                    movie.setSynopsis(req.getSynopsis());
-
-                    Movie updated = movieRepository.save(movie);
-                    return mapToDetailDTO(updated);
-                })
-                .orElseThrow(() -> new NotFoundException("La pelicula con ID: " + id + " no fue encontrada."));
-    }
-
-    /**
-     * elimina una pelicula segun un ID especificado
-     * @param id ID de la pelicula a eliminar
-     */
-    public void deleteById(Long id) {
-        if (!movieRepository.existsById(id)) {
-            throw new NotFoundException("La pelicula con ID: " + id + " no fue encontrada.");
-        }
-        movieRepository.deleteById(id);
     }
 }
 

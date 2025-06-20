@@ -7,7 +7,7 @@ import com.api.boleteria.dto.request.LoginRequestDTO;
 import com.api.boleteria.dto.request.RegisterRequestDTO;
 import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
-import com.api.boleteria.model.Role;
+import com.api.boleteria.model.enums.Role;
 import com.api.boleteria.model.User;
 import com.api.boleteria.repository.ITicketRepository;
 import com.api.boleteria.repository.IUserRepository;
@@ -21,8 +21,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,10 +36,10 @@ import java.util.stream.Collectors;
 public class UserService implements UserDetailsService {
 
     private final IUserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
 
-    private final ITicketRepository ticketRepository;
+
+    //-------------------------------SAVE--------------------------------//
 
     /**
      * Crea un nuevo usuario.
@@ -60,17 +58,15 @@ public class UserService implements UserDetailsService {
             throw new BadRequestException("El nombre de usuario ya está en uso.");
         }
 
-        User entity = new User(
-                req.getName(),
-                req.getSurname(),
-                req.getUsername(),
-                req.getEmail(),
-                passwordEncoder.encode(req.getPassword())
-        );
+        User entity = mapToEntity(req);
 
         User saved = userRepository.save(entity);
         return mapToDetailDTO(saved);
     }
+
+
+
+    //-------------------------------FIND--------------------------------//
 
     /**
      * Muestra todos los usuarios.
@@ -109,25 +105,75 @@ public class UserService implements UserDetailsService {
     }
 
     /**
+     * Obtiene los datos del perfil del usuario autenticado actualmente.
+     *
+     * @return DTO con los datos del usuario (nombre, apellido, username, email, rol).
+     * @throws NotFoundException si el usuario autenticado no existe en la base de datos.
+     */
+    public UserDetailDTO findProfile() {
+        User user = findAuthenticatedUser();
+        return mapToDetailDTO(user);
+    }
+
+    /**
+     * Obtiene el usuario actualmente autenticado en el sistema.
+     *
+     * @return Entidad User del usuario autenticado.
+     * @throws NotFoundException si el usuario no existe.
+     */
+    public User findAuthenticatedUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Usuario con nombre de usuario: " + username + " no encontrado."));
+    }
+
+
+
+    //-------------------------------UPDATE--------------------------------//
+
+    /**
      * Actualización de usuario.
      *
      * @param req DTO del usuario con cambios realizados.
      * @return UserDetailDTO con la información actualizada del usuario especificado.
      */
+
     public UserDetailDTO update(RegisterRequestDTO req) {
-        User user = getAuthenticatedUser();
+        User user = findAuthenticatedUser();
         UserValidator.validateFields(req);
 
-        user.setName(req.getName());
-        user.setSurname(req.getSurname());
-        user.setUsername(req.getUsername());
-        user.setEmail(req.getEmail());
-        user.setRole(req.getRole());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        updateEntityFromDto(req, user);
 
         User updated = userRepository.save(user);
         return mapToDetailDTO(updated);
     }
+
+
+    /**
+     * Cambia el rol de un usuario a ADMIN si el usuario existe.
+     *
+     * @param username Nombre de usuario a modificar.
+     * @return true si el usuario fue encontrado y su rol fue cambiado; false si no se encontró.
+     */
+
+    public UserDetailDTO makeUserAdmin(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalStateException("El usuario ya es ADMIN");
+        }
+
+        user.setRole(Role.ADMIN);
+        User updatedUser = userRepository.save(user);
+
+        return mapToDetailDTO(updatedUser);
+    }
+
+
+
+    //-------------------------------AUTH--------------------------------//
 
     /**
      * Carga los detalles de un usuario a partir de su nombre de usuario.
@@ -149,43 +195,6 @@ public class UserService implements UserDetailsService {
                 user.getPassword(),
                 List.of(authority)
         );
-    }
-
-    /**
-     * Cambia el rol de un usuario a ADMIN si el usuario existe.
-     *
-     * @param username Nombre de usuario a modificar.
-     * @return true si el usuario fue encontrado y su rol fue cambiado; false si no se encontró.
-     */
-    public boolean makeUserAdmin(String username) {
-        return userRepository.findByUsername(username)
-                .map(user -> {
-                    user.setRole(Role.ADMIN);
-                    userRepository.save(user);
-                    return true;
-                })
-                .orElse(false);
-    }
-
-    /**
-     * Verifica si ya existe un usuario con el username especificado.
-     *
-     * @param username Nombre de usuario a verificar.
-     * @return true si el username ya está registrado, false en caso contrario.
-     */
-    public Boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
-
-    /**
-     * Obtiene los datos del perfil del usuario autenticado actualmente.
-     *
-     * @return DTO con los datos del usuario (nombre, apellido, username, email, rol).
-     * @throws NotFoundException si el usuario autenticado no existe en la base de datos.
-     */
-    public UserDetailDTO getProfile() {
-        User user = getAuthenticatedUser();
-        return mapToDetailDTO(user);
     }
 
     /**
@@ -211,18 +220,9 @@ public class UserService implements UserDetailsService {
         return Map.of("token", jwt);
     }
 
-    /**
-     * Obtiene el usuario actualmente autenticado en el sistema.
-     *
-     * @return Entidad User del usuario autenticado.
-     * @throws NotFoundException si el usuario no existe.
-     */
-    public User getAuthenticatedUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Usuario con nombre de usuario: " + username + " no encontrado."));
-    }
+
+    //-------------------------------MAPS--------------------------------//
 
     /**
      * Mapea una entidad User a su DTO detallado.
@@ -255,5 +255,26 @@ public class UserService implements UserDetailsService {
                 user.getRole().name()
         );
     }
+
+    private User mapToEntity(RegisterRequestDTO req) {
+        return new User(
+                req.getName(),
+                req.getSurname(),
+                req.getUsername(),
+                req.getEmail(),
+                passwordEncoder.encode(req.getPassword())
+        );
+    }
+
+    private void updateEntityFromDto(RegisterRequestDTO dto, User user) {
+        user.setName(dto.getName());
+        user.setSurname(dto.getSurname());
+        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
+        user.setRole(dto.getRole());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+    }
+
+
 
 }

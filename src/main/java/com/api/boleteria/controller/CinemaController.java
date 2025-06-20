@@ -3,7 +3,7 @@ package com.api.boleteria.controller;
 import com.api.boleteria.dto.detail.CinemaDetailDTO;
 import com.api.boleteria.dto.list.CinemaListDTO;
 import com.api.boleteria.dto.request.CinemaRequestDTO;
-import com.api.boleteria.model.ScreenType;
+import com.api.boleteria.model.enums.ScreenType;
 import com.api.boleteria.service.CinemaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,33 +31,36 @@ public class CinemaController {
     @Autowired
     private CinemaService cinemaService;
 
+
+    //-------------------------------CREATE--------------------------------//
+
     /**
      * Crea un nuevo cine.
      *
      * @param entity DTO con la información del cine a crear.
      * @return ResponseEntity con el detalle del cine creado.
      */
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CinemaDetailDTO>> create(@Valid @RequestBody List<@Valid CinemaRequestDTO> entity){
         return ResponseEntity.ok(cinemaService.saveAll(entity));
     }
 
+
+
+    //-------------------------------GET--------------------------------//
+
     /**
-     * Obtiene la lista de todos los cines.
+     * obtiene la lista de cines disponibles.
      *
-     * @return ResponseEntity con una lista de DTOs de cines o un 204 No Content si no hay cines.
+     * @return ResponseEntity con la lista de cines (DTO). Nunca retorna lista vacía;
+     * lanza una excepción si no hay cines disponibles.
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<CinemaListDTO>> getList(){
-        List<CinemaListDTO> list = cinemaService.findAll();
-
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<CinemaListDTO>> getAll() {
+        return ResponseEntity.ok(cinemaService.findAll());
     }
 
     /**
@@ -82,14 +85,10 @@ public class CinemaController {
 
     @GetMapping("/ScreenType/{screenType}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<CinemaListDTO>> getByScreenType(@PathVariable ScreenType screenType){
-        List<CinemaListDTO> list = cinemaService.findByScreenType(screenType);
-
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<CinemaListDTO>> getByScreenType(@PathVariable ScreenType screenType) {
+        return ResponseEntity.ok(cinemaService.findByScreenType(screenType));
     }
+
 
     /**
      * Obtiene la lista de cines filtrados por estado habilitado de la sala.
@@ -100,13 +99,8 @@ public class CinemaController {
 
     @GetMapping("/Enabled/{enabled}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<CinemaListDTO>> getByEnabledRoom(@PathVariable boolean enabled){
-        List<CinemaListDTO> list = cinemaService.findByEnabledRoom(enabled);
-
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<CinemaListDTO>> getByEnabledRoom(@PathVariable boolean enabled) {
+        return ResponseEntity.ok(cinemaService.findByEnabledRoom(enabled));
     }
 
     /**
@@ -117,14 +111,31 @@ public class CinemaController {
      */
 
     @GetMapping("/Capacity/{capacity}")
-    public ResponseEntity<List<CinemaListDTO>> getBySeatCapacity(@PathVariable Integer capacity){
-        List<CinemaListDTO> list = cinemaService.findBySeatCapacity(capacity);
-
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(list);
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<List<CinemaListDTO>> getBySeatCapacity(@PathVariable Integer capacity) {
+        return ResponseEntity.ok(cinemaService.findBySeatCapacity(capacity));
     }
+
+
+
+    //-------------------------------UPDATE--------------------------------//
+
+    /**
+     * Actualiza la información de un cine por su ID.
+     *
+     * @param id Identificador del cine a actualizar.
+     * @param entity DTO con la nueva información para el cine.
+     * @return ResponseEntity con el detalle actualizado del cine.
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CinemaDetailDTO> update(@PathVariable Long id, @Valid @RequestBody CinemaRequestDTO entity){
+        return ResponseEntity.ok(cinemaService.updateById(id, entity));
+    }
+
+
+
+    //-------------------------------DELETE--------------------------------//
 
     /**
      * Elimina un cine por su ID.
@@ -139,16 +150,4 @@ public class CinemaController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Actualiza la información de un cine por su ID.
-     *
-     * @param id Identificador del cine a actualizar.
-     * @param entity DTO con la nueva información para el cine.
-     * @return ResponseEntity con el detalle actualizado del cine.
-     */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CinemaDetailDTO> update(@PathVariable Long id, @Valid @RequestBody CinemaRequestDTO entity){
-        return ResponseEntity.ok(cinemaService.updateById(id, entity));
-    }
 }

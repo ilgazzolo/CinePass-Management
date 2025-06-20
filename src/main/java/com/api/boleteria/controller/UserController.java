@@ -25,22 +25,8 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    /**
-     * Otorga rol ADMIN a un usuario existente identificado por su username.
-     *
-     * @param username Nombre de usuario a actualizar.
-     * @return ResponseEntity con mensaje de éxito o error si el usuario no existe.
-     */
-    @PutMapping("/{username}/make-admin")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> makeUserAdmin(@PathVariable String username) {
-        boolean updated = userService.makeUserAdmin(username);
-        if (updated) {
-            return ResponseEntity.ok("Usuario " + username + " ahora es ADMIN");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-        }
-    }
+
+    //-------------------------------GET--------------------------------//
 
     /**
      * Obtiene la lista de todos los usuarios.
@@ -50,8 +36,7 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserListDTO>> getAllUsers() {
-        List<UserListDTO> users = userService.findAllUsers();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userService.findAllUsers());
     }
 
     /**
@@ -60,11 +45,54 @@ public class UserController {
      * @param username Nombre de usuario.
      * @return ResponseEntity con el detalle del usuario.
      */
+
     @GetMapping("/Username/{username}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDetailDTO> getUserByUsername(@PathVariable String username) {
-        UserDetailDTO dto = userService.findByUsername(username);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userService.findByUsername(username));
+
+    }
+
+    /**
+     * Obtiene el detalle de un usuario por su ID.
+     *
+     * @param id Identificador del usuario.
+     * @return ResponseEntity con el detalle del usuario.
+     */
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDetailDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.findById(id));
+    }
+
+    /**
+     * Obtiene el perfil del usuario autenticado.
+     *
+     * @return ResponseEntity con el detalle del usuario autenticado.
+     */
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
+    public ResponseEntity<UserDetailDTO> getMyProfile() {
+        return ResponseEntity.ok(userService.findProfile());
+    }
+
+
+
+    //-------------------------------UPDATE--------------------------------//
+
+    /**
+     * Otorga rol ADMIN a un usuario existente identificado por su username.
+     *
+     * @param username Nombre de usuario a actualizar.
+     * @return ResponseEntity con mensaje de éxito o error si el usuario no existe.
+     */
+
+    @PutMapping("/{username}/make-admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDetailDTO> makeUserAdmin(@PathVariable String username) {
+        return ResponseEntity.ok(userService.makeUserAdmin(username));
     }
 
     /**
@@ -77,35 +105,6 @@ public class UserController {
     @PutMapping("/me")
     @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
     public ResponseEntity<UserDetailDTO> update(@RequestBody RegisterRequestDTO entity) {
-        UserDetailDTO updated = userService.update(entity);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(userService.update(entity));
     }
-
-    /**
-     * Obtiene el detalle de un usuario por su ID.
-     *
-     * @param id Identificador del usuario.
-     * @return ResponseEntity con el detalle del usuario.
-     */
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDetailDTO> findById(@PathVariable Long id) {
-        UserDetailDTO user = userService.findById(id);
-        return ResponseEntity.ok(user);
-    }
-
-    /**
-     * Obtiene el perfil del usuario autenticado.
-     *
-     * @return ResponseEntity con el detalle del usuario autenticado.
-     */
-
-    @GetMapping("/me")
-    @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
-    public ResponseEntity<UserDetailDTO> getMyProfile() {
-        UserDetailDTO user = userService.getProfile();
-        return ResponseEntity.ok(user);
-    }
-
 }

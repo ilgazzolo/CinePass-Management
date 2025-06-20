@@ -1,5 +1,6 @@
 package com.api.boleteria.model;
 
+import com.api.boleteria.model.enums.ScreenType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

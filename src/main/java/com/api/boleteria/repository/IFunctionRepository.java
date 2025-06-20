@@ -1,6 +1,6 @@
 package com.api.boleteria.repository;
 
-import com.api.boleteria.model.ScreenType;
+import com.api.boleteria.model.enums.ScreenType;
 import com.api.boleteria.model.Function;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

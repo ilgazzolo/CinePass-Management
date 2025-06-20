@@ -1,4 +1,4 @@
-package com.api.boleteria.model;
+package com.api.boleteria.model.enums;
 
 public enum ScreenType {
     STANDARD,

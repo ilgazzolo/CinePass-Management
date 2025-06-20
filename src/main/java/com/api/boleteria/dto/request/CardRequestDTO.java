@@ -1,8 +1,6 @@
 package com.api.boleteria.dto.request;
 
-import com.api.boleteria.model.CardType;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.api.boleteria.model.enums.CardType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
