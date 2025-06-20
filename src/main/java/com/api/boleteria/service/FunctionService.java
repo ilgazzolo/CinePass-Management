@@ -85,8 +85,8 @@ public class FunctionService {
         Movie movie = movieRepo.findById(entity.getMovieId())
                 .orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada."));
 
-        List<Function> funcionesEnSala = functionRepo.findByCinemaId(entity.getCinemaId());
-        FunctionValidator.validateHorario(entity, movie, funcionesEnSala);
+        List<Function> functionsInTheCinema = functionRepo.findByCinemaId(entity.getCinemaId());
+        FunctionValidator.validateSchedule(entity, movie, functionsInTheCinema);
 
         Function function = new Function();
         function.setShowtime(entity.getShowtime());
@@ -145,8 +145,8 @@ public class FunctionService {
         Movie movie = movieRepo.findById(entity.getMovieId())
                 .orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada."));
 
-        List<Function> funcionesEnSala = functionRepo.findByCinemaId(entity.getCinemaId());
-        FunctionValidator.validateHorario(entity, movie, funcionesEnSala);
+        List<Function> functionsInTheCinema = functionRepo.findByCinemaId(entity.getCinemaId());
+        FunctionValidator.validateSchedule(entity, movie, functionsInTheCinema);
 
         return functionRepo.findById(id)
                 .map(f -> {
@@ -178,11 +178,11 @@ public class FunctionService {
      * @return Lista de FunctionListDTO con la informacion de las funciones encontradas
      */
     public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
-        List<Function> funciones = functionRepo
+        List<Function> functions = functionRepo
                 .findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
                         movieId, 0, LocalDateTime.now());
 
-        return funciones.stream()
+        return functions.stream()
                 .map(this::mapToListDTO)
                 .toList();
     }
@@ -197,15 +197,15 @@ public class FunctionService {
             throw new BadRequestException("Debe especificar un tipo de pantalla.");
         }
 
-        List<Function> funciones = functionRepo
+        List<Function> functions = functionRepo
                 .findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
                         screenType, 0, LocalDateTime.now());
 
-        if (funciones.isEmpty()) {
+        if (functions.isEmpty()) {
             throw new NotFoundException("No hay funciones disponibles para el tipo de pantalla: " + screenType.name());
         }
 
-        return funciones.stream()
+        return functions.stream()
                 .map(this::mapToListDTO)
                 .toList();
     }

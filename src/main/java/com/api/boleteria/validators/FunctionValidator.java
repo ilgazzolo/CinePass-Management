@@ -63,16 +63,16 @@ public class FunctionValidator {
     }
 
     // Validación de solapamiento de horarios en la misma sala
-    public static void validateHorario(FunctionRequestDTO dto, Movie movie, List<Function> funcionesEnSala) {
-        LocalDateTime nuevaInicio = dto.getShowtime();
-        LocalDateTime nuevaFin = nuevaInicio.plusMinutes(movie.getDuration());
+    public static void validateSchedule(FunctionRequestDTO dto, Movie movie, List<Function> functionsInTheCinema) {
+        LocalDateTime newStart = dto.getShowtime();
+        LocalDateTime newEnd = newStart.plusMinutes(movie.getDuration());
 
-        for (Function f : funcionesEnSala) {
-            LocalDateTime existenteInicio = f.getShowtime();
-            LocalDateTime existenteFin = existenteInicio.plusMinutes(f.getMovie().getDuration());
+        for (Function f : functionsInTheCinema) {
+            LocalDateTime existingStart = f.getShowtime();
+            LocalDateTime existingEnd = existingStart.plusMinutes(f.getMovie().getDuration());
 
-            boolean seSolapan = nuevaInicio.isBefore(existenteFin) && existenteInicio.isBefore(nuevaFin);
-            if (seSolapan) {
+            boolean overlap = newStart.isBefore(existingEnd) && existingStart.isBefore(newEnd);
+            if (overlap) {
                 throw new BadRequestException("Ya existe una función en esa sala que se solapa con el horario.");
             }
         }

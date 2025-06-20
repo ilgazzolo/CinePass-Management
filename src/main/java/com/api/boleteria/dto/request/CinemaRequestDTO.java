@@ -25,5 +25,5 @@ public class CinemaRequestDTO {
     private Integer capacity;
 
     @NotNull(message = "El campo habilitada es obligatorio")
-    private Boolean habilitada;
+    private Boolean enabled;
 }

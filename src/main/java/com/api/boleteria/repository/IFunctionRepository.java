@@ -15,7 +15,7 @@ public interface IFunctionRepository extends JpaRepository<Function, Long> {
     List<Function> findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(Long movieId, int availableCapacity, LocalDateTime date);
     List<Function> findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
             ScreenType screenType,
-            int minCapacidad,
-            LocalDateTime fechaActual
+            int minCapacity,
+            LocalDateTime currentDate
     );
 }
