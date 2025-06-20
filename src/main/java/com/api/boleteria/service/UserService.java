@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 /**
  * Servicio para gestionar operaciones relacionadas con Usuarios.
  */
@@ -42,15 +43,15 @@ public class UserService implements UserDetailsService {
 
     private final ITicketRepository ticketRepository;
 
-
     /**
-     * crea un nuevo usuario
-     * @param req DTO con la informacion del nuevo usuario
-     * @returs userDetail con los datos del usuario creado
+     * Crea un nuevo usuario.
+     *
+     * @param req DTO con la información del nuevo usuario.
+     * @return UserDetailDTO con los datos del usuario creado.
      */
-    public UserDetailDTO save (RegisterRequestDTO req){
+    public UserDetailDTO save(RegisterRequestDTO req) {
+        UserValidator.validateFields(req);
 
-        UserValidator.CamposValidator(req);
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new BadRequestException("El email ya está registrado.");
         }
@@ -58,110 +59,75 @@ public class UserService implements UserDetailsService {
         if (userRepository.findByUsername(req.getUsername()).isPresent()) {
             throw new BadRequestException("El nombre de usuario ya está en uso.");
         }
+
         User entity = new User(
                 req.getName(),
                 req.getSurname(),
                 req.getUsername(),
                 req.getEmail(),
-                new BCryptPasswordEncoder().encode(req.getPassword()));
+                passwordEncoder.encode(req.getPassword())
+        );
 
         User saved = userRepository.save(entity);
-        return new UserDetailDTO(
-                saved.getId(),
-                saved.getName(),
-                saved.getSurname(),
-                saved.getUsername(),
-                saved.getEmail(),
-                saved.getRole().name()
-        );
+        return mapToDetailDTO(saved);
     }
 
-
     /**
-     * muestra todos los usuarios
-     * @return List de UserList con la informacion de los usuarios guardados
+     * Muestra todos los usuarios.
+     *
+     * @return Lista de UserListDTO con la información de los usuarios guardados.
      */
-    public List<UserListDTO> findAllUsers (){
+    public List<UserListDTO> findAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(u -> new UserListDTO(
-                        u.getId(),
-                        u.getUsername(),
-                        u.getEmail(),
-                        u.getRole().name()
-                ))
+                .map(this::mapToListDTO)
                 .toList();
     }
 
-
     /**
-     * muestra suarios por id
-     * @param id ID de usuario a mostrar
-     * @return UserDetail con la informacion del usuario encontrado
+     * Muestra usuario por id.
+     *
+     * @param id ID de usuario a mostrar.
+     * @return UserDetailDTO con la información del usuario encontrado.
      */
-    public UserDetailDTO findById(Long id){
+    public UserDetailDTO findById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("El usuario con ID: "+id+" no fue encontrado."));
-        return new UserDetailDTO(
-                user.getId(),
-                user.getName(),
-                user.getSurname(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole().name()
-        );
+                .orElseThrow(() -> new NotFoundException("El usuario con ID: " + id + " no fue encontrado."));
+        return mapToDetailDTO(user);
     }
 
-
     /**
-     * muetra usuarios por nombre
-     * @param username nombre de usuario a mostrar
-     * @return UserDetail con la informacion del usuario encontrado
+     * Muestra usuario por nombre de usuario.
+     *
+     * @param username Nombre de usuario a mostrar.
+     * @return UserDetailDTO con la información del usuario encontrado.
      */
     public UserDetailDTO findByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("El usuario con nombre: "+username+" no fue encontrado"));
-
-        return new UserDetailDTO(
-                user.getId(),
-                user.getName(),
-                user.getSurname(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole().name()
-        );
+                .orElseThrow(() -> new NotFoundException("El usuario con nombre: " + username + " no fue encontrado"));
+        return mapToDetailDTO(user);
     }
 
-
     /**
-     * actualizacion de usuario
-     * @param req DTO del usuario con cambios realizados
-     * @return UserDetail con la informacion actualizada del usuario especificado
+     * Actualización de usuario.
+     *
+     * @param req DTO del usuario con cambios realizados.
+     * @return UserDetailDTO con la información actualizada del usuario especificado.
      */
     public UserDetailDTO update(RegisterRequestDTO req) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("El usuario con nombre: "+username+" no fue encontrado."));
+        User user = getAuthenticatedUser();
+        UserValidator.validateFields(req);
 
         user.setName(req.getName());
+        user.setSurname(req.getSurname());
         user.setUsername(req.getUsername());
         user.setEmail(req.getEmail());
         user.setRole(req.getRole());
-        user.setPassword(new BCryptPasswordEncoder().encode(req.getPassword()));
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
 
         User updated = userRepository.save(user);
-
-        return new UserDetailDTO(
-                updated.getId(),
-                updated.getName(),
-                updated.getSurname(),
-                updated.getUsername(),
-                updated.getEmail(),
-                updated.getRole().name()
-        );
+        return mapToDetailDTO(updated);
     }
-
 
     /**
      * Carga los detalles de un usuario a partir de su nombre de usuario.
@@ -172,7 +138,7 @@ public class UserService implements UserDetailsService {
      * @throws NotFoundException si el usuario no existe.
      */
     @Override
-    public UserDetails loadUserByUsername(String username)  {
+    public UserDetails loadUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("El usuario con nombre: " + username + " no fue encontrado."));
 
@@ -201,7 +167,6 @@ public class UserService implements UserDetailsService {
                 .orElse(false);
     }
 
-
     /**
      * Verifica si ya existe un usuario con el username especificado.
      *
@@ -216,22 +181,11 @@ public class UserService implements UserDetailsService {
      * Obtiene los datos del perfil del usuario autenticado actualmente.
      *
      * @return DTO con los datos del usuario (nombre, apellido, username, email, rol).
-     * @throws UsernameNotFoundException si el usuario autenticado no existe en la base de datos.
+     * @throws NotFoundException si el usuario autenticado no existe en la base de datos.
      */
     public UserDetailDTO getProfile() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("El usuario con nombre: " + username + " no fue encontrado."));
-
-        return new UserDetailDTO(
-                user.getId(),
-                user.getName(),
-                user.getSurname(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole().name()
-        );
+        User user = getAuthenticatedUser();
+        return mapToDetailDTO(user);
     }
 
     /**
@@ -257,19 +211,49 @@ public class UserService implements UserDetailsService {
         return Map.of("token", jwt);
     }
 
-
     /**
      * Obtiene el usuario actualmente autenticado en el sistema.
      *
      * @return Entidad User del usuario autenticado.
      * @throws NotFoundException si el usuario no existe.
      */
-    public User getUsernameAuthenticatedUser() {
+    public User getAuthenticatedUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Usuario con nombre de usuario: " + username + " no encontrado."));
     }
 
+    /**
+     * Mapea una entidad User a su DTO detallado.
+     *
+     * @param user Entidad User a mapear.
+     * @return UserDetailDTO con la información del usuario.
+     */
+    private UserDetailDTO mapToDetailDTO(User user) {
+        return new UserDetailDTO(
+                user.getId(),
+                user.getName(),
+                user.getSurname(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().name()
+        );
+    }
+
+    /**
+     * Mapea una entidad User a su DTO de lista.
+     *
+     * @param user Entidad User a mapear.
+     * @return UserListDTO con la información básica del usuario.
+     */
+    private UserListDTO mapToListDTO(User user) {
+        return new UserListDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().name()
+        );
+    }
 
 }

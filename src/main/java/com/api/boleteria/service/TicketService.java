@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Servicio para gestionar operaciones relacionadas con tickets.
@@ -61,40 +63,36 @@ public class TicketService {
      */
     public List<TicketDetailDTO> buyTickets(TicketRequestDTO dto) {
         TicketValidator.validateFields(dto);
-        User user = userService.getUsernameAuthenticatedUser();
+
+        User user = userService.getAuthenticatedUser();
 
         Function function = functionRepository.findById(dto.getFunctionId())
                 .orElseThrow(() -> new NotFoundException("Función no encontrada."));
-
-        int requestedQuantity = dto.getQuantity();
-        TicketValidator.validateCapacity(function, requestedQuantity);
+        TicketValidator.validateCapacity(function, dto.getQuantity());
 
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("El usuario " + user.getUsername() + " no tiene una tarjeta registrada."));
+        TicketValidator.validateCardBalance(card, dto.getQuantity());
 
-        TicketValidator.validateCardBalance(card, requestedQuantity);
-
-        double totalAmount = TICKET_PRICE * requestedQuantity;
+        double totalAmount = TICKET_PRICE * dto.getQuantity();
 
         card.setBalance(card.getBalance() - totalAmount);
-        function.setAvailableCapacity(function.getAvailableCapacity() - requestedQuantity);
+        function.setAvailableCapacity(function.getAvailableCapacity() - dto.getQuantity());
         cardRepository.save(card);
         functionRepository.save(function);
 
-        List<Ticket> createdTickets = new ArrayList<>();
+        List<Ticket> createdTickets = IntStream.range(0, dto.getQuantity())
+                .mapToObj(i -> {
+                    Ticket ticket = new Ticket();
+                    ticket.setTicketPrice(TICKET_PRICE);
+                    ticket.setPurchaseDateTime(LocalDateTime.now());
+                    ticket.setUser(user);
+                    ticket.setFunction(function);
+                    return ticketRepository.save(ticket);
+                })
+                .toList();
 
-        for (int i = 0; i < requestedQuantity; i++) {
-            Ticket ticket = new Ticket();
-            ticket.setTicketPrice(TICKET_PRICE);
-            ticket.setPurchaseDateTime(LocalDateTime.now());
-            ticket.setUser(user);
-            ticket.setFunction(function);
-
-            Ticket saved = ticketRepository.save(ticket);
-            createdTickets.add(saved);
-            user.getTickets().add(saved);
-        }
-
+        user.getTickets().addAll(createdTickets);
         userRepository.save(user);
 
         return createdTickets.stream()
@@ -102,13 +100,14 @@ public class TicketService {
                 .toList();
     }
 
+
     /**
      * Obtiene todos los tickets asociados al usuario autenticado.
      *
      * @return Lista de TicketDetailDTO con los tickets del usuario.
      */
     public List<TicketDetailDTO> findTicketsFromAuthenticatedUser() {
-        User user = userService.getUsernameAuthenticatedUser();
+        User user = userService.getAuthenticatedUser();
 
         return user.getTickets().stream()
                 .map(this::mapToDetailDTO)
@@ -123,7 +122,7 @@ public class TicketService {
      * @throws AccesDeniedException si el ticket no pertenece al usuario autenticado.
      */
     public TicketDetailDTO findTicketById(Long ticketId) {
-        User user = userService.getUsernameAuthenticatedUser();
+        User user = userService.getAuthenticatedUser();
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new NotFoundException("No se encontró el ticket con ID: " + ticketId));

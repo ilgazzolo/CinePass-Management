@@ -26,6 +26,7 @@ public class CardService {
     private final ICardRepository cardRepository;
     private final IUserRepository userRepository;
     private final CardValidator cardValidator;
+    private final UserService userService;
 
     private static final double MAX_RECHARGE_AMOUNT = 20000.0;
     private static final double MAX_TOTAL_BALANCE = 1000000.0;
@@ -47,7 +48,7 @@ public class CardService {
         card.setCvv(dto.getCvv());
         card.setCardType(dto.getCardType());
         card.setBalance(0.0);
-        card.setUser(getAuthenticatedUser());
+        card.setUser(userService.getAuthenticatedUser());
 
         Card saved = cardRepository.save(card);
         return mapToDetailDTO(saved);
@@ -68,7 +69,7 @@ public class CardService {
             throw new BadRequestException("El monto excede el límite máximo de recarga permitido: $" + MAX_RECHARGE_AMOUNT);
         }
 
-        User user = getAuthenticatedUser();
+        User user = userService.getAuthenticatedUser();
 
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("El usuario: " + user.getUsername() + " no tiene una tarjeta registrada."));
@@ -89,7 +90,7 @@ public class CardService {
      * @return Saldo actual.
      */
     public Double getBalance() {
-        User user = getAuthenticatedUser();
+        User user = userService.getAuthenticatedUser();
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("El usuario: " + user.getUsername() + " no tiene una tarjeta registrada."));
         return card.getBalance();
@@ -101,7 +102,7 @@ public class CardService {
      * @return DTO con el detalle de la tarjeta.
      */
     public CardDetailDTO findFromAuthenticatedUser() {
-        User user = getAuthenticatedUser();
+        User user = userService.getAuthenticatedUser();
 
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: " + user.getUsername()));
@@ -117,8 +118,7 @@ public class CardService {
      */
     public CardDetailDTO updateAuthenticatedUserCard(CardRequestDTO dto) {
         cardValidator.validateCard(dto);
-
-        User user = getAuthenticatedUser();
+        User user = userService.getAuthenticatedUser();
 
         return cardRepository.findByUserId(user.getId())
                 .map(card -> {
@@ -139,7 +139,7 @@ public class CardService {
      * Elimina la tarjeta asociada al usuario autenticado.
      */
     public void deleteFromAuthenticatedUser() {
-        User user = getAuthenticatedUser();
+        User user = userService.getAuthenticatedUser();
 
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: " + user.getUsername()));
@@ -147,15 +147,7 @@ public class CardService {
         cardRepository.delete(card);
     }
 
-    private String getAuthenticatedUsername() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
 
-    private User getAuthenticatedUser() {
-        String username = getAuthenticatedUsername();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Usuario: " + username + " no encontrado. "));
-    }
 
     private CardDetailDTO mapToDetailDTO(Card card) {
         return new CardDetailDTO(

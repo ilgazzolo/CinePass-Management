@@ -11,20 +11,53 @@ import java.util.List;
 
 public class FunctionValidator {
 
+    /**
+     * Valida todos los campos del DTO FunctionRequestDTO.
+     *
+     * @param dto DTO con los datos de la función a validar.
+     * @throws BadRequestException si algún campo no cumple las reglas de validación.
+     */
     public static void validateFields(FunctionRequestDTO dto) {
-        if (dto.getShowtime() == null) {
-            throw new BadRequestException("La date de la función no puede ser nula.");
-        }
+        validateShowtime(dto.getShowtime());
+        validateCinemaId(dto.getCinemaId());
+        validateMovieId(dto.getMovieId());
+    }
 
-        if (dto.getShowtime().isBefore(LocalDateTime.now())) {
-            throw new BadRequestException("La date de la función no puede estar en el pasado.");
+    /**
+     * Valida la fecha y hora de la función.
+     *
+     * @param showtime Fecha y hora de la función.
+     * @throws BadRequestException si la fecha es nula o está en el pasado.
+     */
+    private static void validateShowtime(LocalDateTime showtime) {
+        if (showtime == null) {
+            throw new BadRequestException("La fecha de la función no puede ser nula.");
         }
+        if (showtime.isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("La fecha de la función no puede estar en el pasado.");
+        }
+    }
 
-        if (dto.getCinemaId() == null || dto.getCinemaId() <= 0) {
+    /**
+     * Valida el ID del cine.
+     *
+     * @param cinemaId ID del cine.
+     * @throws BadRequestException si el ID es nulo o menor o igual a cero.
+     */
+    private static void validateCinemaId(Long cinemaId) {
+        if (cinemaId == null || cinemaId <= 0) {
             throw new BadRequestException("El ID del cine no es válido.");
         }
+    }
 
-        if (dto.getMovieId() == null || dto.getMovieId() <= 0) {
+    /**
+     * Valida el ID de la película.
+     *
+     * @param movieId ID de la película.
+     * @throws BadRequestException si el ID es nulo o menor o igual a cero.
+     */
+    private static void validateMovieId(Long movieId) {
+        if (movieId == null || movieId <= 0) {
             throw new BadRequestException("El ID de la película no es válido.");
         }
     }
