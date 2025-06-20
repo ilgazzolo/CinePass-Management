@@ -33,7 +33,6 @@ public class CardRequestDTO {
 
     @NotBlank(message = "El código de seguridad es obligatorio")
     @Pattern(regexp = "^[0-9]{3}$", message = "El CVV debe tener exactamente 3 dígitos")
-    @JsonIgnore
     private String cvv;
 
     @NotNull(message = "El tipo de tarjeta es obligatorio")
