@@ -68,7 +68,7 @@ public class CinemaService {
         cinema.setScreenType(entity.getScreenType());
         cinema.setAtmos(entity.getAtmos());
         cinema.setSeatCapacity(entity.getCapacity());
-        cinema.setEnabled(entity.getHabilitada());
+        cinema.setEnabled(entity.getEnabled());
 
         Cinema saved = cinemaRepository.save(cinema);
 
