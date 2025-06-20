@@ -12,6 +12,7 @@ import com.api.boleteria.validators.CinemaValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,23 +57,32 @@ public class CinemaService {
     }
 
     /**
-     * crea una nueva sala
-     * @param entity DTO con la informacion de la nueva sala
-     * @return Cinema Detail con la informacion de la sala creada
+     * Crea una o más salas (cinemas) a partir de una lista de DTOs.
+     *
+     * @param requests Lista de DTOs con los datos de cada sala a crear.
+     * @return Lista de CinemaDetailDTO con la información de las salas creadas.
      */
-    public CinemaDetailDTO save(CinemaRequestDTO entity) {
-        CinemaValidator.validateFields(entity);
+    public List<CinemaDetailDTO> saveAll(List<CinemaRequestDTO> requests) {
+        List<Cinema> cinemasToSave = new ArrayList<>();
 
-        Cinema cinema = new Cinema();
-        cinema.setName(entity.getNombre());
-        cinema.setScreenType(entity.getScreenType());
-        cinema.setAtmos(entity.getAtmos());
-        cinema.setSeatCapacity(entity.getCapacity());
-        cinema.setEnabled(entity.getEnabled());
+        for (CinemaRequestDTO dto : requests) {
+            CinemaValidator.validateFields(dto);
 
-        Cinema saved = cinemaRepository.save(cinema);
+            Cinema cinema = new Cinema();
+            cinema.setName(dto.getNombre());
+            cinema.setScreenType(dto.getScreenType());
+            cinema.setAtmos(dto.getAtmos());
+            cinema.setSeatCapacity(dto.getCapacity());
+            cinema.setEnabled(dto.getEnabled());
 
-        return mapToDetailDTO(saved);
+            cinemasToSave.add(cinema);
+        }
+
+        List<Cinema> savedCinemas = cinemaRepository.saveAll(cinemasToSave);
+
+        return savedCinemas.stream()
+                .map(this::mapToDetailDTO)
+                .toList();
     }
 
     /**

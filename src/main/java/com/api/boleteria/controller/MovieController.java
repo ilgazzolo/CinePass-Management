@@ -7,6 +7,7 @@ import com.api.boleteria.service.MovieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -33,16 +34,18 @@ public class MovieController {
     private MovieService movieService;
 
     /**
-     * Registra una nueva película.
+     * Registra una o más películas.
      *
-     * @param entity DTO con la información necesaria para crear la película.
-     * @return ResponseEntity con el detalle de la película creada.
+     * Este endpoint permite a un administrador cargar múltiples películas en una sola solicitud.
+     * Cada película es validada y registrada si no existe previamente una con el mismo título.
+     *
+     * @param entity Lista de DTOs con la información necesaria para crear las películas.
+     * @return ResponseEntity con la lista de películas creadas.
      */
-
     @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MovieDetailDTO> create (@Valid @RequestBody MovieRequestDTO entity){
-        return ResponseEntity.ok(movieService.create(entity));
+    public ResponseEntity<List<MovieDetailDTO>> create(@Valid @RequestBody List<@Valid MovieRequestDTO> entity) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(movieService.createAll(entity));
     }
 
     /**

@@ -6,6 +6,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
+
 /**
  * Maneja de forma global las excepciones lanzadas en los controladores REST.
  *
@@ -46,13 +48,28 @@ public class GlobalExceptionHandler {
      * Maneja la excepción AccesDeniedException y devuelve una respuesta con estado 401.
      *
      * @param ex Excepción AccesDeniedException capturada.
-     * @return ResponseEntity con mensaje de error y estado HTTP 401 (Unauthorized).
+     * @return ResponseEntity con mensaje de error y estado HTTP 403 (Forbidden).
      */
 
     @ExceptionHandler(AccesDeniedException.class)
     public ResponseEntity<String> AccesDeniedExceptionsHandler(AccesDeniedException ex){
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
+
+    /**
+     * Maneja excepciones de acceso denegado lanzadas cuando un usuario no tiene permisos suficientes.
+     *
+     * Este handler se activa cuando se lanza una {@link AccessDeniedException}, por ejemplo,
+     * al intentar acceder a un recurso protegido sin el rol correspondiente.
+     *
+     * @param ex Excepción que contiene el mensaje de error.
+     * @return ResponseEntity con el mensaje de error y el estado HTTP 403 (Forbidden).
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> AccesDeniedExceptionsDefaultHandler(AccessDeniedException ex){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
 
 
     /**

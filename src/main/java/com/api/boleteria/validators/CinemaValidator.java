@@ -22,7 +22,7 @@ public class CinemaValidator {
         validateScreenType(dto.getScreenType());
         validateCapacity(dto.getCapacity());
         validateAtmos(dto.getAtmos());
-        validateHabilitada(dto.getHabilitada());
+        validateHabilitada(dto.getEnabled());
     }
 
     /**

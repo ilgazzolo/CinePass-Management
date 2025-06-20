@@ -39,8 +39,8 @@ public class CinemaController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CinemaDetailDTO> create(@Valid @RequestBody CinemaRequestDTO entity){
-        return ResponseEntity.ok(cinemaService.save(entity));
+    public ResponseEntity<List<CinemaDetailDTO>> create(@Valid @RequestBody List<@Valid CinemaRequestDTO> entity){
+        return ResponseEntity.ok(cinemaService.saveAll(entity));
     }
 
     /**

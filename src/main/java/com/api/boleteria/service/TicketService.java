@@ -14,8 +14,10 @@ import com.api.boleteria.repository.ITicketRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import com.api.boleteria.repository.IUserRepository;
 import com.api.boleteria.validators.TicketValidator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -54,13 +56,25 @@ public class TicketService {
         );
     }
 
+
     /**
      * Crea uno o varios tickets para una función específica.
-     * Verifica la disponibilidad de entradas y el saldo en la tarjeta del usuario.
+     *
+     * Este método realiza las siguientes operaciones de manera transaccional:
+     * - Verifica disponibilidad de entradas.
+     * - Verifica saldo en la tarjeta del usuario.
+     * - Descuenta saldo de la tarjeta.
+     * - Reduce la capacidad disponible de la función.
+     * - Crea los tickets correspondientes y los asocia al usuario.
+     *
+     * Si alguna de estas operaciones falla, la transacción se revierte y no se guarda ningún cambio.
      *
      * @param dto DTO con los datos de la compra (ID de función y cantidad).
      * @return Lista de TicketDetailDTO con los tickets comprados.
+     * @throws NotFoundException si no se encuentra la función o la tarjeta del usuario.
+     * @throws BadRequestException si no hay capacidad suficiente o fondos en la tarjeta.
      */
+    @Transactional
     public List<TicketDetailDTO> buyTickets(TicketRequestDTO dto) {
         TicketValidator.validateFields(dto);
 
@@ -99,6 +113,7 @@ public class TicketService {
                 .map(this::mapToDetailDTO)
                 .toList();
     }
+
 
 
     /**

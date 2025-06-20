@@ -29,16 +29,18 @@ public class FunctionController {
     private final FunctionService functionService;
 
     /**
-     * Crea una nueva función.
+     * Crea una o varias funciones nuevas.
      *
-     * @param entity DTO con los datos necesarios para crear la función.
-     * @return ResponseEntity con el detalle de la función creada.
+     * @param entities Lista de DTOs con los datos necesarios para crear cada función.
+     * @return ResponseEntity con la lista de detalles de las funciones creadas.
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<FunctionDetailDTO> create (@Valid @RequestBody FunctionRequestDTO entity){
-        return ResponseEntity.ok(functionService.create(entity));
+    public ResponseEntity<List<FunctionDetailDTO>> create(@Valid @RequestBody List<FunctionRequestDTO> entities) {
+        List<FunctionDetailDTO> createdFunctions = functionService.createAll(entities);
+        return ResponseEntity.ok(createdFunctions);
     }
+
 
     /**
      * Obtiene la lista de todas las funciones.

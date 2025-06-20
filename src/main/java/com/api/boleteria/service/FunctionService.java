@@ -13,11 +13,13 @@ import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import com.api.boleteria.repository.IMovieRepository;
 import com.api.boleteria.validators.FunctionValidator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,43 +65,53 @@ public class FunctionService {
     }
 
     /**
-     * Crea una nueva funcion, validando que no exista una funcion en la misma sala en el horario especificado.
+     * Crea una o varias funciones, validando para cada una que no exista función en la misma sala y horario,
+     * que la fecha no supere los dos años, y que no haya solapamientos.
      *
-     * Verifica que no se creen funciones con fecha de inicio mayor a dos años.
-     * @param entity FunctionRequest con la informacion de la nueva funcion
-     * @return Function Detail con la informacion de la funcion creada
+     * @param entities Lista de DTOs con la información de las nuevas funciones.
+     * @return Lista de FunctionDetailDTO con la información de las funciones creadas.
+     * @throws BadRequestException si alguna función no cumple las validaciones.
+     * @throws NotFoundException si alguna sala o película no existe.
      */
-    public FunctionDetailDTO create(FunctionRequestDTO entity) {
-        FunctionValidator.validateFields(entity);
+    @Transactional
+    public List<FunctionDetailDTO> createAll(List<FunctionRequestDTO> entities) {
+        List<FunctionDetailDTO> createdFunctions = new ArrayList<>();
 
-        if (functionRepo.existsByCinemaIdAndShowtime(entity.getCinemaId(), entity.getShowtime())) {
-            throw new BadRequestException("Ya existe una función para esa sala en ese horario.");
+        for (FunctionRequestDTO entity : entities) {
+            FunctionValidator.validateFields(entity);
+
+            if (functionRepo.existsByCinemaIdAndShowtime(entity.getCinemaId(), entity.getShowtime())) {
+                throw new BadRequestException("Ya existe una función para la sala " + entity.getCinemaId() + " en el horario " + entity.getShowtime());
+            }
+
+            FunctionValidator.validateMaxTwoYears(entity);
+
+            Cinema cinema = cinemaRepo.findById(entity.getCinemaId())
+                    .orElseThrow(() -> new NotFoundException("No existe la sala con ID: " + entity.getCinemaId()));
+            FunctionValidator.validateEnabledCinema(cinema);
+
+            Movie movie = movieRepo.findById(entity.getMovieId())
+                    .orElseThrow(() -> new NotFoundException("No existe la película con ID: " + entity.getMovieId()));
+
+            List<Function> functionsInTheCinema = functionRepo.findByCinemaId(entity.getCinemaId());
+            FunctionValidator.validateSchedule(entity, movie, functionsInTheCinema);
+
+            Function function = new Function();
+            function.setShowtime(entity.getShowtime());
+            function.setCinema(cinema);
+            function.setAvailableCapacity(cinema.getSeatCapacity());
+            function.setMovie(movie);
+
+            Function saved = functionRepo.save(function);
+            movie.getFunctions().add(saved);
+            cinema.getFunctions().add(saved);
+
+            createdFunctions.add(mapToDetailDTO(saved));
         }
 
-        FunctionValidator.validateMaxTwoYears(entity);
-
-        Cinema cinema = cinemaRepo.findById(entity.getCinemaId())
-                .orElseThrow(() -> new NotFoundException("No existe la sala ingresada."));
-        FunctionValidator.validateEnabledCinema(cinema);
-
-        Movie movie = movieRepo.findById(entity.getMovieId())
-                .orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada."));
-
-        List<Function> functionsInTheCinema = functionRepo.findByCinemaId(entity.getCinemaId());
-        FunctionValidator.validateSchedule(entity, movie, functionsInTheCinema);
-
-        Function function = new Function();
-        function.setShowtime(entity.getShowtime());
-        function.setCinema(cinema);
-        function.setAvailableCapacity(cinema.getSeatCapacity());
-        function.setMovie(movie);
-
-        Function saved = functionRepo.save(function);
-        movie.getFunctions().add(saved);
-        cinema.getFunctions().add(saved);
-
-        return mapToDetailDTO(saved);
+        return createdFunctions;
     }
+
 
     /**
      * muestra todas las funciones

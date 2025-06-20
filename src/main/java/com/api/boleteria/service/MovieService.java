@@ -13,6 +13,7 @@ import com.api.boleteria.validators.MovieValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -61,35 +62,62 @@ public class MovieService {
     }
 
     /**
-     * crea una nueva pelicula
-     * @param req MovieRequets con la informacion del nuevo usuario
-     * @return MovieDetail con la informacion del usuario creado
+     * Crea una o más películas a partir de una lista de DTOs.
+     *
+     * Valida cada película antes de ser persistida, asegurándose de que no existan duplicados por título.
+     *
+     * @param requests Lista de DTOs con los datos de las películas a crear.
+     * @return Lista de MovieDetailDTO con la información de las películas creadas.
+     * @throws BadRequestException si alguna película ya existe o los datos son inválidos.
      */
-    public MovieDetailDTO create(MovieRequestDTO req) {
-        MovieValidator.validateFields(req);
+    public List<MovieDetailDTO> createAll(List<MovieRequestDTO> requests) {
+        List<Movie> moviesToSave = new ArrayList<>();
 
-        if (movieRepository.existsByTitle(req.getTitle().trim())) {
-            throw new BadRequestException("Ya existe una película con el título: " + req.getTitle());
+        for (MovieRequestDTO req : requests) {
+            MovieValidator.validateFields(req);
+
+            String title = req.getTitle().trim();
+
+            if (movieRepository.existsByTitle(title)) {
+                throw new BadRequestException("Ya existe una película con el título: " + title);
+            }
+
+            Movie movie = new Movie();
+            movie.setTitle(title);
+            movie.setDuration(req.getDuration());
+            movie.setMovieGenre(req.getGenre());
+            movie.setDirector(req.getDirector());
+            movie.setClassification(req.getClassification());
+            movie.setSynopsis(req.getSynopsis());
+
+            moviesToSave.add(movie);
         }
 
-        Movie movie = new Movie();
-        movie.setTitle(req.getTitle().trim());
-        movie.setDuration(req.getDuration());
-        movie.setMovieGenre(req.getGenre());
-        movie.setDirector(req.getDirector());
-        movie.setClassification(req.getClassification());
-        movie.setSynopsis(req.getSynopsis());
+        List<Movie> saved = movieRepository.saveAll(moviesToSave);
 
-        Movie saved = movieRepository.save(movie);
-        return mapToDetailDTO(saved);
+        return saved.stream()
+                .map(this::mapToDetailDTO)
+                .toList();
     }
 
-    public boolean existsByTittle(String title) {
+
+
+    /**
+     * Verifica si ya existe una película con el título especificado.
+     *
+     * Realiza una validación previa para asegurarse de que el título no sea nulo ni esté vacío.
+     *
+     * @param title Título de la película a verificar.
+     * @return true si existe una película con ese título, false en caso contrario.
+     * @throws IllegalArgumentException si el título es nulo o está vacío.
+     */
+    public boolean existsByTitle(String title) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("El título no puede estar vacío.");
         }
         return movieRepository.existsByTitle(title.trim());
     }
+
 
     /**
      * muestra todas las peliculas asociadas a un genero en especifico
