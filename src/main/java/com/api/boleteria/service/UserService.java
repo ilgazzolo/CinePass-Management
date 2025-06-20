@@ -9,7 +9,6 @@ import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.enums.Role;
 import com.api.boleteria.model.User;
-import com.api.boleteria.repository.ITicketRepository;
 import com.api.boleteria.repository.IUserRepository;
 import com.api.boleteria.validators.UserValidator;
 import lombok.AllArgsConstructor;
