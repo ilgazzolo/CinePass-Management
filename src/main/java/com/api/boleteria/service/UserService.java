@@ -5,6 +5,7 @@ import com.api.boleteria.dto.detail.UserDetailDTO;
 import com.api.boleteria.dto.list.UserListDTO;
 import com.api.boleteria.dto.request.LoginRequestDTO;
 import com.api.boleteria.dto.request.RegisterRequestDTO;
+import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Role;
 import com.api.boleteria.model.User;
@@ -50,6 +51,13 @@ public class UserService implements UserDetailsService {
     public UserDetailDTO save (RegisterRequestDTO req){
 
         UserValidator.CamposValidator(req);
+        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
+            throw new BadRequestException("El email ya está registrado.");
+        }
+
+        if (userRepository.findByUsername(req.getUsername()).isPresent()) {
+            throw new BadRequestException("El nombre de usuario ya está en uso.");
+        }
         User entity = new User(
                 req.getName(),
                 req.getSurname(),
@@ -161,12 +169,12 @@ public class UserService implements UserDetailsService {
      *
      * @param username Nombre de usuario.
      * @return UserDetails con la información del usuario autenticado.
-     * @throws UsernameNotFoundException si el usuario no existe.
+     * @throws NotFoundException si el usuario no existe.
      */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username)  {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("El usuario con nombre: " + username + " no fue encontrado."));
+                .orElseThrow(() -> new NotFoundException("El usuario con nombre: " + username + " no fue encontrado."));
 
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName());
 
