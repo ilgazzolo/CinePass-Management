@@ -36,7 +36,6 @@ public class AuthController {
      */
 
     @PostMapping("/login")
-    @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDTO entity) {
         return ResponseEntity.ok(userService.login(entity, authManager));
     }
@@ -49,7 +48,6 @@ public class AuthController {
      */
 
     @PostMapping("/register")
-    @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
     public ResponseEntity<String> register(@RequestBody RegisterRequestDTO entity) {
 
         if (userService.existsByUsername(entity.getUsername())) {
