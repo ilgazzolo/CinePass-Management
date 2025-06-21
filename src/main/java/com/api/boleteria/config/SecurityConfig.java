@@ -11,26 +11,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Clase de configuración de seguridad para la aplicación.
- *
- * Define las reglas de seguridad HTTP, deshabilita CSRF, login por formulario y HTTP Basic,
- * configura el manejo de sesiones como stateless, y establece permisos y autenticación para rutas específicas.
- * También registra el filtro JwtAuthFilter para validar tokens JWT en cada solicitud.
- */
+
+
+// ... tus imports ...
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    /**
-     * Configura la cadena de filtros de seguridad HTTP.
-     *
-     * @param http objeto HttpSecurity para configurar la seguridad HTTP.
-     * @return SecurityFilterChain configurada con reglas y filtros definidos.
-     * @throws Exception si ocurre un error en la configuración.
-     */
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -43,13 +31,33 @@ public class SecurityConfig {
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
+                        // *** ¡ESTOS ARCHIVOS HTML DEBEN SER PÚBLICOS! ***
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/admin_dashboard.html", // <--- ¡AQUÍ!
+                                "/user_dashboard.html",  // <--- ¡AQUÍ!
+                                "/movies_management.html",  // <--- ¡AQUÍ!
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico"
+                        ).permitAll()
+                        // *************************************************
+
+                        // Permite acceso a los endpoints de autenticación (login y register) sin autenticación
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // Todas las demás rutas de la API requieren autenticación
                         .requestMatchers("/api/cinemas/**").authenticated()
                         .requestMatchers("/api/movies/**").authenticated()
                         .requestMatchers("/api/functions/**").authenticated()
                         .requestMatchers("/api/card/**").authenticated()
                         .requestMatchers("/api/tickets/**").authenticated()
                         .requestMatchers("/api/userManagement/**").authenticated()
+                        .requestMatchers("/api/create_movie").authenticated()
+
+                        // Asegura que cualquier otra petición no especificada también requiera autenticación
                         .anyRequest().authenticated())
 
                 .addFilterBefore(jwtAuthFilter(),
@@ -58,27 +66,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Crea un bean del filtro JwtAuthFilter para validar tokens JWT.
-     *
-     * @return instancia de JwtAuthFilter.
-     */
-
     @Bean
-    public JwtAuthFilter jwtAuthFilter() {return new JwtAuthFilter();}
-
-
-    /**
-     * Proporciona el AuthenticationManager necesario para la autenticación.
-     *
-     * @param config configuración de autenticación de Spring.
-     * @return AuthenticationManager configurado.
-     * @throws Exception si ocurre un error al obtener el AuthenticationManager.
-     */
+    public JwtAuthFilter jwtAuthFilter() {
+        return new JwtAuthFilter();
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
 }

@@ -194,7 +194,7 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("El usuario con nombre: " + username + " no fue encontrado."));
 
-        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName());
+        GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().getRoleName());
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),

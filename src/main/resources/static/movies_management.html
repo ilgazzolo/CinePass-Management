@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Películas - Admin</title>
+    <style>
+        /* Paleta de colores: Rojo (#DC3545) y Gris Oscuro (#343A40) */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #343A40;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #E0E0E0;
+        }
+
+        .container {
+            background-color: #212529;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            width: 700px;
+            max-width: 90%;
+            text-align: center;
+            border: 1px solid #495057;
+        }
+
+        h1 {
+            color: #DC3545;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+
+        .action-menu {
+            display: grid; /* Usamos CSS Grid para una mejor distribución */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* 2 columnas adaptables */
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .action-button {
+            background-color: #DC3545;
+            color: white;
+            padding: 25px 20px; /* Un poco más grandes */
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-button:hover {
+            background-color: #C82333;
+            transform: translateY(-3px);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .message.error {
+            background-color: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #DC3545; /* Spinner rojo */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 50px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-button, .logout-button {
+            background-color: #6C757D;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 30px;
+            margin-right: 10px;
+        }
+
+        .back-button:hover, .logout-button:hover {
+            background-color: #5A6268;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Gestión de Películas</h1>
+    <div id="loading-spinner" class="loading-spinner" style="display: none;"></div>
+    <div id="content-area">
+        <p>Selecciona una acción para las películas:</p>
+        <div class="action-menu">
+            <button class="action-button" onclick="navigateToMovieAction('create')">Crear Película</button>
+            <button class="action-button" onclick="navigateToMovieAction('view_all')">Ver Todas las Películas</button>
+            <button class="action-button" onclick="navigateToMovieAction('view_by_id')">Ver por ID</button>
+            <button class="action-button" onclick="navigateToMovieAction('filter_by_genre')">Filtrar por Género</button>
+            <button class="action-button" onclick="navigateToMovieAction('update')">Actualizar Película</button>
+            <button class="action-button" onclick="navigateToMovieAction('delete')">Eliminar Película</button>
+        </div>
+        <div id="access-message" class="message error" style="display: none;"></div>
+        <button class="back-button" onclick="goBackToAdminDashboard()">Volver al Panel</button>
+        <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
+    </div>
+</div>
+
+<script>
+    // Función para mostrar mensajes en la UI
+    function displayMessage(elementId, message, type = 'error') {
+        const messageElement = document.getElementById(elementId);
+        if (messageElement) {
+            messageElement.textContent = message;
+            messageElement.className = `message ${type}`;
+            messageElement.style.display = 'block';
+        }
+    }
+
+    // Función para decodificar JWT manualmente y obtener los roles
+    function decodeJwtManually(token) {
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                throw new Error('Formato de JWT inválido');
+            }
+            const payload = JSON.parse(atob(parts[1]));
+            return payload.roles || [];
+        } catch (error) {
+            console.error("Error decodificando JWT manualmente:", error);
+            return [];
+        }
+    }
+
+    // Función para verificar el rol del usuario al cargar la página
+    function checkAdminRoleForPage() {
+        const jwtToken = localStorage.getItem('jwtToken');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const contentArea = document.getElementById('content-area');
+        const accessMessage = document.getElementById('access-message');
+
+        if (!loadingSpinner || !contentArea || !accessMessage) {
+            console.error("Elementos del DOM no encontrados al cargar la página.");
+            return;
+        }
+
+        loadingSpinner.style.display = 'block';
+        contentArea.style.display = 'none';
+
+        if (!jwtToken) {
+            displayMessage('access-message', 'No has iniciado sesión. Redirigiendo al login...', 'error');
+            setTimeout(() => { window.location.href = '/index.html'; }, 2000);
+            return;
+        }
+
+        const userRoles = decodeJwtManually(jwtToken);
+
+        loadingSpinner.style.display = 'none';
+        contentArea.style.display = 'block';
+
+        if (userRoles.includes('ADMIN') || userRoles.includes('ROLE_ADMIN')) {
+            // Acceso concedido, no hacer nada más, los botones ya están visibles
+        } else {
+            displayMessage('access-message', 'Acceso denegado. No tienes permisos de administrador. Redirigiendo al login...', 'error');
+            localStorage.removeItem('jwtToken');
+            setTimeout(() => { window.location.href = '/index.html'; }, 3000);
+        }
+    }
+
+    // Función para navegar a la acción específica de películas
+    function navigateToMovieAction(action) {
+        switch(action) {
+            case 'create':
+                window.location.href = '/create_movie.html';
+                break;
+            case 'view_all':
+                alert("Ver Todas las Películas (funcionalidad en construcción)");
+                // window.location.href = '/view_movies.html'; // Podrías crear esta página
+                break;
+            case 'view_by_id':
+                alert("Ver por ID (funcionalidad en construcción)");
+                // window.location.href = '/view_movie_by_id.html';
+                break;
+            case 'filter_by_genre':
+                alert("Filtrar por Género (funcionalidad en construcción)");
+                // window.location.href = '/filter_movies.html';
+                break;
+            case 'update':
+                alert("Actualizar Película (funcionalidad en construcción)");
+                // window.location.href = '/update_movie.html';
+                break;
+            case 'delete':
+                alert("Eliminar Película (funcionalidad en construcción)");
+                // window.location.href = '/delete_movie.html';
+                break;
+            default:
+                console.warn("Acción de película no reconocida:", action);
+        }
+    }
+
+    // Función para volver al panel de administración
+    function goBackToAdminDashboard() {
+        window.location.href = '/admin_dashboard.html';
+    }
+
+    // Función para cerrar sesión
+    function logout() {
+        localStorage.removeItem('jwtToken');
+        window.location.href = '/index.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', checkAdminRoleForPage);
+</script>
+</body>
+</html>

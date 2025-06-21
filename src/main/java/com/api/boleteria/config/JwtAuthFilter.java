@@ -13,30 +13,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Filtro de seguridad que intercepta cada solicitud HTTP para validar el token JWT enviado en el encabezado Authorization.
- *
- * Este filtro verifica la validez y expiración del token JWT. Si es válido, extrae el nombre de usuario y los roles,
- * y establece la autenticación en el contexto de seguridad de Spring Security para controlar el acceso a recursos protegidos.
- *
- * En caso de token inválido o expirado, responde con un estado 401 (No autorizado) y un mensaje descriptivo.
- *
- * Este filtro se ejecuta una única vez por cada solicitud gracias a la extensión de OncePerRequestFilter.
- */
-
 public class JwtAuthFilter extends OncePerRequestFilter {
-
-    /**
-     * Filtra cada solicitud HTTP para validar el token JWT en el encabezado Authorization.
-     * Si el token es válido, establece la autenticación en el contexto de seguridad.
-     * En caso de token inválido o expirado, responde con estado 401.
-     *
-     * @param request Solicitud HTTP entrante.
-     * @param response Respuesta HTTP que puede modificarse en caso de error.
-     * @param chain Cadena de filtros para continuar el procesamiento.
-     * @throws ServletException si ocurre un error relacionado con el servlet.
-     * @throws IOException      si ocurre un error de entrada/salida.
-     */
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -46,32 +23,43 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
+        // Permite la solicitud pasar si no hay token (para rutas públicas)
         if (header == null || !header.startsWith("Bearer ")) {
+            System.out.println("DEBUG JWT Filter: No JWT token or invalid format. Path: " + request.getRequestURI());
             chain.doFilter(request, response);
             return;
         }
 
-        String token = header.substring(7);
+        String token = header.substring(7); // Extrae el token "Bearer "
 
         try {
-
             if (JwtUtil.validateToken(token)) {
-
                 String username = JwtUtil.getUsername(token);
                 List<String> roles = JwtUtil.getRoles(token);
+
+                // DEBUG: Muestra los roles ANTES de añadir el prefijo
+                System.out.println("DEBUG JWT Filter: Roles from JWT for " + username + " (before prefix): " + roles);
 
                 List<SimpleGrantedAuthority> authorities = roles.stream()
                         .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
                         .collect(Collectors.toList());
+
+                // DEBUG: Muestra las autoridades DESPUÉS de añadir el prefijo
+                System.out.println("DEBUG JWT Filter: Authorities for " + username + " (after prefix): " + authorities);
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 username, null, authorities);
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("DEBUG JWT Filter: Authentication set for user: " + username + " with authorities: " + authorities);
+
+            } else {
+                System.out.println("DEBUG JWT Filter: JWT token is invalid for path: " + request.getRequestURI());
             }
         } catch (Exception e) {
-
+            // Esto captura expiración y otros errores de JWT
+            System.err.println("ERROR JWT Filter: Invalid or expired token for path " + request.getRequestURI() + ": " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Token inválido o expirado");
             return;

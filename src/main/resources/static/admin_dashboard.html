@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Sistema de Boletería</title>
+    <style>
+        /* Paleta de colores: Rojo (#DC3545) y Gris Oscuro (#343A40) */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #343A40; /* Fondo gris oscuro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #E0E0E0; /* Texto claro */
+        }
+
+        .container {
+            background-color: #212529; /* Contenedor más oscuro */
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            width: 600px;
+            max-width: 90%;
+            text-align: center;
+            border: 1px solid #495057;
+        }
+
+        h1 {
+            color: #DC3545; /* Rojo vibrante para el título */
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+
+        .admin-menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .menu-button {
+            background-color: #DC3545; /* Rojo para el botón principal */
+            color: white;
+            padding: 20px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            text-decoration: none;
+            flex-grow: 1;
+            max-width: 250px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-button:hover {
+            background-color: #C82333; /* Rojo más oscuro al pasar el ratón */
+            transform: translateY(-3px);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .message.error {
+            background-color: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+
+        .logout-button {
+            background-color: #6C757D; /* Gris medio para el botón de salir */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .logout-button:hover {
+            background-color: #5A6268;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Panel de Administración</h1>
+
+    <div id="loading-spinner" class="loading-spinner" style="display: none;"></div>
+    <div id="content-area">
+        <p>Bienvenido al dashboard de administración.</p>
+        <div id="admin-menu" class="admin-menu" style="display: none;">
+            <button class="menu-button" onclick="goToPage('movies_management')">Películas</button>
+            <button class="menu-button" onclick="goToPage('rooms')">Salas</button>
+            <button class="menu-button" onclick="goToPage('functions')">Funciones</button>
+            <button class="menu-button" onclick="goToPage('users')">Usuarios</button>
+        </div>
+        <div id="access-message" class="message error" style="display: none;"></div>
+        <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
+    </div>
+</div>
+
+<script>
+    // Función para mostrar mensajes en la UI
+    function displayMessage(elementId, message, type = 'error') {
+        const messageElement = document.getElementById(elementId);
+        if (messageElement) {
+            messageElement.textContent = message;
+            messageElement.className = `message ${type}`;
+            messageElement.style.display = 'block';
+        }
+    }
+
+    // Función para decodificar JWT manualmente y obtener los roles
+    function decodeJwtManually(token) {
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                throw new Error('Formato de JWT inválido');
+            }
+            const payload = JSON.parse(atob(parts[1]));
+            return payload.roles || [];
+        } catch (error) {
+            console.error("Error decodificando JWT manualmente:", error);
+            return [];
+        }
+    }
+
+    // Función para verificar el rol del usuario al cargar la página
+    function checkAdminRole() {
+        const jwtToken = localStorage.getItem('jwtToken');
+        const adminMenu = document.getElementById('admin-menu');
+        const accessMessage = document.getElementById('access-message');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const contentArea = document.getElementById('content-area');
+
+        if (!loadingSpinner || !contentArea || !adminMenu || !accessMessage) {
+            console.error("Elementos del DOM no encontrados.");
+            return;
+        }
+
+        loadingSpinner.style.display = 'block';
+        contentArea.style.display = 'none';
+
+        if (!jwtToken) {
+            displayMessage('access-message', 'No has iniciado sesión. Redirigiendo al login...', 'error');
+            setTimeout(() => { window.location.href = '/index.html'; }, 2000);
+            return;
+        }
+
+        const userRoles = decodeJwtManually(jwtToken);
+
+        loadingSpinner.style.display = 'none';
+        contentArea.style.display = 'block';
+
+        if (userRoles.includes('ADMIN') || userRoles.includes('ROLE_ADMIN')) {
+            adminMenu.style.display = 'flex';
+            accessMessage.style.display = 'none';
+        } else {
+            displayMessage('access-message', 'Acceso denegado. No tienes permisos de administrador. Redirigiendo al login...', 'error');
+            localStorage.removeItem('jwtToken');
+            setTimeout(() => { window.location.href = '/index.html'; }, 3000);
+        }
+    }
+
+    // Función para manejar la navegación a otras páginas
+    function goToPage(pageName) {
+        if (pageName === 'movies_management') {
+            window.location.href = '/movies_management.html'; // Redirige a la nueva página de gestión
+        } else {
+            alert(`¡Navegando a la página de ${pageName.charAt(0).toUpperCase() + pageName.slice(1)}! (En construcción)`);
+        }
+    }
+
+    // Función para cerrar sesión
+    function logout() {
+        localStorage.removeItem('jwtToken');
+        window.location.href = '/index.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', checkAdminRole);
+</script>
+</body>
+</html>
