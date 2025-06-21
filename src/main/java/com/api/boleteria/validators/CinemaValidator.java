@@ -46,7 +46,7 @@ public class CinemaValidator {
      * @param screenType Tipo de pantalla a validar.
      * @throws BadRequestException si es nulo.
      */
-    private static void validateScreenType(Object screenType) {
+    public static void validateScreenType(Object screenType) {
         if (screenType == null) {
             throw new BadRequestException("El tipo de pantalla no puede ser nulo.");
         }

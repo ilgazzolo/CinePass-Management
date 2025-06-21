@@ -56,13 +56,17 @@ public class MovieController {
     /**
      * Obtiene la lista de todas las películas.
      *
-     * @return ResponseEntity con una lista de películas o lanza RuntimeException si la lista está vacía.
+     * @return ResponseEntity con una lista de peliculas o 204 No Content si no hay peliculas.
      */
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<MovieListDTO>> getAll() {
-        return ResponseEntity.ok(movieService.findAll());
+        List<MovieListDTO> movieList = movieService.findAll();
+        if (movieList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(movieList);
     }
 
     /**
@@ -79,17 +83,24 @@ public class MovieController {
     }
 
     /**
-     * Obtiene la lista de películas filtradas por género.
+     * Obtiene una lista de películas que coinciden con el género especificado.
+     * <p>
+     * Si no se encuentran películas del género dado, se devuelve una respuesta con código 204 (No Content).
      *
-     * @param genre Género para filtrar las películas.
-     * @return ResponseEntity con la lista de películas que coinciden con el género.
+     * @param genre Género de las películas a buscar.
+     * @return ResponseEntity con la lista de MovieListDTO si hay resultados,
+     * o un 204 No Content si la lista está vacía.
      */
-
     @GetMapping("/genre/{genre}")
-    public ResponseEntity<List<MovieListDTO>> getByGenre(@PathVariable String genre) {
-        return ResponseEntity.ok(movieService.findByMovieGenre(genre));
-    }
+    public ResponseEntity<List<MovieListDTO>> findByGenre(@PathVariable String genre) {
+        List<MovieListDTO> movies = movieService.findByMovieGenre(genre);
 
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(movies);
+    }
 
 
     //-------------------------------UPDATE--------------------------------//
@@ -116,13 +127,12 @@ public class MovieController {
      * Elimina una película por su ID.
      *
      * @param id Identificador de la película a eliminar.
-     * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
+     * @return ResponseEntity con estado 200 OK y un mensaje confirmando la eliminación exitosa.
      */
-
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete (@PathVariable Long id){
+    public ResponseEntity<String> delete(@PathVariable Long id) {
         movieService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Tu película fue eliminada correctamente");
     }
 }

@@ -10,4 +10,5 @@ import java.util.List;
 public interface IMovieRepository extends JpaRepository<Movie,Long> {
     boolean existsByTitle(String title);
     List<Movie> findByMovieGenre(String genre);
+    boolean existsByTitleAndIdNot(String title, Long id);
 }

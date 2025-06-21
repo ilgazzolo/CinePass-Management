@@ -70,6 +70,7 @@ public class MovieService {
      * @return lista de MovieList con la informacion de las peliculas encontradas
      */
     public List<MovieListDTO> findByMovieGenre(String genre) {
+        MovieValidator.validateGenre(genre);
         return movieRepository.findByMovieGenre(genre).stream()
                 .map(this::mapToListDTO)
                 .toList();
@@ -80,23 +81,19 @@ public class MovieService {
      * @return lista de MovieList con la informacion de las peliculas encontradas
      */
     public List<MovieListDTO> findAll() {
-        List<MovieListDTO> movieList = movieRepository.findAll().stream()
+        return movieRepository.findAll().stream()
                 .map(this::mapToListDTO)
                 .toList();
-
-        if (movieList.isEmpty()) {
-            throw new NotFoundException("No hay películas registradas.");
-        }
-
-        return movieList;
     }
 
     /**
      * obtiene una pelicula segun un ID especificado
      * @param id ID de la pelicula a buscar
      * @return MovieDetail con la informacion de la pelicula encontrada
+     * @throws IllegalArgumentException si el ID es nulo o inválido.
      */
     public MovieDetailDTO findById(Long id) {
+        MovieValidator.validateId(id);
         Movie m = movieRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("La pelicula con ID: " + id + " no fue encontrada."));
         return mapToDetailDTO(m);
@@ -107,12 +104,28 @@ public class MovieService {
     //-------------------------------UPDATE--------------------------------//
 
     /**
-     * actualiza una pelicula, segun un ID especificado
-     * @param id ID de la pelicula a actualizar
-     * @param req DTO con los cambios realizados
-     * @return MovieDetail con la informacion de la pelicula actualizada
+     * Actualiza una película existente según su ID.
+     *
+     * Valida que el ID sea válido y que los campos del DTO cumplan con las reglas definidas.
+     * Además, verifica que no exista otra película con el mismo título para evitar duplicados.
+     *
+     * @param id  ID de la película a actualizar.
+     * @param req DTO con los datos actualizados de la película.
+     * @return MovieDetailDTO con la información de la película actualizada.
+     * @throws IllegalArgumentException si el ID es nulo o inválido.
+     * @throws BadRequestException si ya existe otra película con el mismo título.
+     * @throws NotFoundException si no se encuentra la película con el ID proporcionado.
      */
     public MovieDetailDTO updateById(Long id, MovieRequestDTO req) {
+        MovieValidator.validateId(id);  // Validamos el ID primero
+        MovieValidator.validateFields(req);
+
+        String title = req.getTitle().trim();
+        boolean titleExistsInOther = movieRepository.existsByTitleAndIdNot(title, id);
+        if (titleExistsInOther) {
+            throw new BadRequestException("Ya existe una película con el título: " + title);
+        }
+
         return movieRepository.findById(id)
                 .map(movie -> {
                     movie.setTitle(req.getTitle());
@@ -125,9 +138,8 @@ public class MovieService {
                     Movie updated = movieRepository.save(movie);
                     return mapToDetailDTO(updated);
                 })
-                .orElseThrow(() -> new NotFoundException("La pelicula con ID: " + id + " no fue encontrada."));
+                .orElseThrow(() -> new NotFoundException("La película con ID: " + id + " no fue encontrada."));
     }
-
 
 
     //-------------------------------DELETE--------------------------------//
@@ -137,6 +149,7 @@ public class MovieService {
      * @param id ID de la pelicula a eliminar
      */
     public void deleteById(Long id) {
+        MovieValidator.validateId(id);
         if (!movieRepository.existsById(id)) {
             throw new NotFoundException("La pelicula con ID: " + id + " no fue encontrada.");
         }

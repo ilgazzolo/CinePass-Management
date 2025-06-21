@@ -46,13 +46,17 @@ public class TicketController {
     /**
      * Obtiene la lista de boletos asociados al usuario autenticado.
      *
-     * @return ResponseEntity con la lista de boletos detallados.
+     * @return ResponseEntity con la lista de boletos detallados,
+     *         o un estado 204 No Content si no hay boletos.
      */
-
     @GetMapping
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<List<TicketDetailDTO>> getTickets() {
-        return ResponseEntity.ok(ticketService.findTicketsFromAuthenticatedUser());
+        List<TicketDetailDTO> tickets = ticketService.findTicketsFromAuthenticatedUser();
+        if (tickets.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(tickets);
     }
 
     /**

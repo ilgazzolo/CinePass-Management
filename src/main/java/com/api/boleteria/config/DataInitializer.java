@@ -19,28 +19,28 @@ public class DataInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Método que se ejecuta al iniciar la aplicación.
+     *
+     * Verifica si existe un usuario con nombre de usuario "admin".
+     * Si no existe, crea uno con rol ADMIN y credenciales predeterminadas.
+     *
+     * Este método es útil para garantizar que siempre haya al menos un administrador en el sistema.
+     */
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.findByUsername("admin").isEmpty()) {
-            RegisterRequestDTO adminDto = new RegisterRequestDTO(
-                    "Admin",
-                    "Admin",
-                    "admin",
-                    "admin@tuapp.com",
-                    "Admin123!"
-            );
-            adminDto.setRole(Role.ADMIN);
-
             User admin = new User();
-            admin.setName(adminDto.getName());
-            admin.setSurname(adminDto.getSurname());
-            admin.setUsername(adminDto.getUsername());
-            admin.setEmail(adminDto.getEmail());
-            admin.setPassword(passwordEncoder.encode(adminDto.getPassword()));
-            admin.setRole(adminDto.getRole());
+            admin.setName("Admin");
+            admin.setSurname("Admin");
+            admin.setUsername("admin");
+            admin.setEmail("admin@tuapp.com");
+            admin.setPassword(passwordEncoder.encode("Admin123!"));
+            admin.setRole(Role.ADMIN);
 
             userRepository.save(admin);
         }
     }
+
 }
 

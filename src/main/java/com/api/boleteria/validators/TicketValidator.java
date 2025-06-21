@@ -57,4 +57,18 @@ public class TicketValidator {
         }
     }
 
+    /**
+     * Valida que el ID del ticket sea válido.
+     *
+     * @param ticketId ID del ticket a validar.
+     * @throws IllegalArgumentException si el ID es nulo o menor o igual a cero.
+     */
+    public static void validateTicketId(Long ticketId) {
+        if (ticketId == null || ticketId <= 0) {
+            throw new IllegalArgumentException("El ID del ticket debe ser un número positivo.");
+        }
+    }
+
+
 }
+

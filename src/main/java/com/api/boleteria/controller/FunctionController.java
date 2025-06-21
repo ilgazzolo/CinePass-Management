@@ -30,6 +30,7 @@ public class FunctionController {
 
 
     //-------------------------------CREATE--------------------------------//
+
     /**
      * Crea una o varias funciones nuevas.
      *
@@ -43,7 +44,6 @@ public class FunctionController {
     }
 
 
-
     //-------------------------------GET--------------------------------//
 
     /**
@@ -54,7 +54,11 @@ public class FunctionController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getAll() {
-        return ResponseEntity.ok(functionService.findAll());
+        List<FunctionListDTO> list = functionService.findAll();
+        if (list.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(list);
     }
 
     /**
@@ -65,66 +69,84 @@ public class FunctionController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<FunctionDetailDTO> getById(@PathVariable Long id){
+    public ResponseEntity<FunctionDetailDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(functionService.findById(id));
     }
 
     /**
      * Obtiene la lista de funciones disponibles para una película específica,
-     * filtrando por capacidad disponible.
+     * considerando únicamente aquellas con capacidad disponible.
+     * <p>
+     * Si no se encuentran funciones disponibles para la película indicada,
+     * se devuelve una respuesta con código 204 (No Content).
      *
      * @param movieId Identificador de la película.
-     * @return ResponseEntity con la lista de funciones disponibles.
+     * @return ResponseEntity con la lista de funciones disponibles o 204 si está vacía.
      */
     @GetMapping("/disponibles/{movieId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getAvailableFunctionsPerMovie(@PathVariable Long movieId) {
-        return ResponseEntity.ok(functionService.findByMovieIdAndAvailableCapacity(movieId));
+        List<FunctionListDTO> functions = functionService.findByMovieIdAndAvailableCapacity(movieId);
+
+        if (functions.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(functions);
     }
 
     /**
      * Obtiene la lista de funciones filtradas por tipo de pantalla.
+     * <p>
+     * Si no se encuentran funciones para el tipo de pantalla indicado,
+     * se devuelve una respuesta con estado 204 (No Content).
      *
      * @param screenType Tipo de pantalla para filtrar las funciones.
-     * @return ResponseEntity con la lista de funciones que coinciden con el tipo de pantalla.
+     * @return ResponseEntity con la lista de funciones que coinciden con el tipo de pantalla,
+     * o estado 204 si no hay resultados.
      */
     @GetMapping("/tipo-pantalla/{screenType}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getByScreenType(@PathVariable ScreenType screenType) {
-        return ResponseEntity.ok(functionService.findByScreenType(screenType));
+        List<FunctionListDTO> functions = functionService.findByScreenType(screenType);
+
+        if (functions.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(functions);
     }
 
 
+        //-------------------------------UPDATE--------------------------------//
 
-    //-------------------------------UPDATE--------------------------------//
+        /**
+         * Actualiza una función por su ID.
+         *
+         * @param id Identificador de la función a actualizar.
+         * @param entity DTO con los nuevos datos de la función.
+         * @return ResponseEntity con el detalle actualizado de la función.
+         */
+        @PutMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<FunctionDetailDTO> update (@PathVariable Long id, @Valid @RequestBody FunctionRequestDTO
+        entity){
+            return ResponseEntity.ok(functionService.updateById(id, entity));
+        }
 
-    /**
-     * Actualiza una función por su ID.
-     *
-     * @param id Identificador de la función a actualizar.
-     * @param entity DTO con los nuevos datos de la función.
-     * @return ResponseEntity con el detalle actualizado de la función.
-     */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<FunctionDetailDTO> update(@PathVariable Long id, @Valid @RequestBody FunctionRequestDTO entity){
-        return ResponseEntity.ok(functionService.updateById(id, entity));
+
+        //-------------------------------DELETE--------------------------------//
+
+        /**
+         * Elimina una función por su ID.
+         *
+         * @param id Identificador de la función a eliminar.
+         * @return ResponseEntity con mensaje confirmando la eliminación.
+         */
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<String> delete(@PathVariable Long id){
+            functionService.deleteById(id);
+            return ResponseEntity.ok("Función eliminada correctamente.");
+        }
     }
 
-
-
-    //-------------------------------DELETE--------------------------------//
-
-    /**
-     * Elimina una función por su ID.
-     *
-     * @param id Identificador de la función a eliminar.
-     * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete (@PathVariable Long id){
-        functionService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-}

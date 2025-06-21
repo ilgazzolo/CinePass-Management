@@ -41,7 +41,7 @@ public class MovieValidator {
      * @param title Título a validar.
      * @throws BadRequestException si es nulo, vacío o no cumple con la longitud permitida.
      */
-    private static void validateTitle(String title) {
+    public static void validateTitle(String title) {
         if (title == null || title.isBlank()) {
             throw new BadRequestException("El título es obligatorio.");
         }
@@ -56,7 +56,7 @@ public class MovieValidator {
      * @param duration Duración en minutos.
      * @throws BadRequestException si es nula, no positiva o excede el máximo permitido.
      */
-    private static void validateDuration(Integer duration) {
+    public static void validateDuration(Integer duration) {
         if (duration == null) {
             throw new BadRequestException("La duración es obligatoria.");
         }
@@ -74,7 +74,7 @@ public class MovieValidator {
      * @param genre Género a validar.
      * @throws BadRequestException si es nulo, vacío o no cumple con la longitud permitida.
      */
-    private static void validateGenre(String genre) {
+    public static void validateGenre(String genre) {
         if (genre == null || genre.isBlank()) {
             throw new BadRequestException("El género es obligatorio.");
         }
@@ -83,13 +83,14 @@ public class MovieValidator {
         }
     }
 
+
     /**
      * Valida el director de la película.
      *
      * @param director Nombre del director.
      * @throws BadRequestException si es nulo, vacío o no cumple con la longitud permitida.
      */
-    private static void validateDirector(String director) {
+    public static void validateDirector(String director) {
         if (director == null || director.isBlank()) {
             throw new BadRequestException("El director es obligatorio.");
         }
@@ -104,7 +105,7 @@ public class MovieValidator {
      * @param classification Clasificación a validar.
      * @throws BadRequestException si es nula o vacía.
      */
-    private static void validateClassification(String classification) {
+    public static void validateClassification(String classification) {
         if (classification == null || classification.isBlank()) {
             throw new BadRequestException("La clasificación es obligatoria.");
         }
@@ -117,12 +118,24 @@ public class MovieValidator {
      * @param synopsis Sinopsis a validar.
      * @throws BadRequestException si es nula, vacía o no cumple con la longitud permitida.
      */
-    private static void validateSynopsis(String synopsis) {
+    public static void validateSynopsis(String synopsis) {
         if (synopsis == null || synopsis.isBlank()) {
             throw new BadRequestException("La sinopsis es obligatoria.");
         }
         if (synopsis.length() < SYNOPSIS_MIN || synopsis.length() > SYNOPSIS_MAX) {
             throw new BadRequestException("La sinopsis debe tener entre " + SYNOPSIS_MIN + " y " + SYNOPSIS_MAX + " caracteres.");
+        }
+    }
+
+    /**
+     * Valida que el ID de la película sea un número positivo y no nulo.
+     *
+     * @param id ID de la película a validar.
+     * @throws IllegalArgumentException si el ID es nulo o menor o igual a cero.
+     */
+    public static void validateId(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("El ID de la película debe ser un número positivo.");
         }
     }
 }

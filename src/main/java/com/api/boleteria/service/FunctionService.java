@@ -12,6 +12,7 @@ import com.api.boleteria.model.Movie;
 import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import com.api.boleteria.repository.IMovieRepository;
+import com.api.boleteria.validators.CinemaValidator;
 import com.api.boleteria.validators.FunctionValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +83,7 @@ public class FunctionService {
 
 
 
+
     //-------------------------------FIND--------------------------------//
 
     /**
@@ -89,15 +91,9 @@ public class FunctionService {
      * @return Lista de FunctionList con la informacion de las funciones encontradas
      */
     public List<FunctionListDTO> findAll() {
-        List<FunctionListDTO> list = functionRepo.findAll().stream()
+        return functionRepo.findAll().stream()
                 .map(this::mapToListDTO)
                 .toList();
-
-        if (list.isEmpty()) {
-            throw new NotFoundException("No hay funciones registradas.");
-        }
-
-        return list;
     }
 
     /**
@@ -106,17 +102,32 @@ public class FunctionService {
      * @return Function Detail con la informacion de la funcion encontrada
      */
     public FunctionDetailDTO findById(Long id) {
+        FunctionValidator.validateId(id);
         Function function = functionRepo.findById(id)
                 .orElseThrow(() -> new NotFoundException("La funcion con ID: " + id + " no fue encontrada."));
 
         return mapToDetailDTO(function);
     }
+
     /**
-     * muestra solo las proximas funciones de una pelicula segun su ID
-     * @param movieId id de la pelicula que se desea mostrar sus funciones
-     * @return Lista de FunctionListDTO con la informacion de las funciones encontradas
+     * Muestra solo las próximas funciones disponibles de una película, según su ID.
+     *
+     * Valida que el ID de la película sea mayor a 0 y que exista en la base de datos.
+     * Solo se devuelven funciones con capacidad disponible y cuya fecha de inicio
+     * sea posterior al momento actual.
+     *
+     * @param movieId ID de la película que se desea mostrar sus funciones.
+     * @return Lista de FunctionListDTO con la información de las funciones encontradas.
+     * @throws IllegalArgumentException si el ID proporcionado no es válido.
+     * @throws NotFoundException si no existe una película con el ID especificado.
      */
     public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
+        FunctionValidator.validateMovieId(movieId);
+
+        if (!movieRepo.existsById(movieId)) {
+            throw new NotFoundException("La película con ID " + movieId + " no fue encontrada.");
+        }
+
         List<Function> functions = functionRepo
                 .findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
                         movieId, 0, LocalDateTime.now());
@@ -132,17 +143,12 @@ public class FunctionService {
      * @return Lista de Funciones encontradas
      */
     public List<FunctionListDTO> findByScreenType(ScreenType screenType) {
-        if (screenType == null) {
-            throw new BadRequestException("Debe especificar un tipo de pantalla.");
-        }
+        CinemaValidator.validateScreenType(screenType);
 
         List<Function> functions = functionRepo
                 .findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
                         screenType, 0, LocalDateTime.now());
 
-        if (functions.isEmpty()) {
-            throw new NotFoundException("No hay funciones disponibles para el tipo de pantalla: " + screenType.name());
-        }
 
         return functions.stream()
                 .map(this::mapToListDTO)
@@ -153,41 +159,43 @@ public class FunctionService {
 
     //-------------------------------UPDATE--------------------------------//
     /**
-     * actualiza una funcion segun el ID especificado
-     * @param id de la funcion a modificar
-     * @param entity objeto DTO con los campos modificados
-     * @return Function Detail con la informacion de la funcion actualizada
+     * Actualiza una función según el ID especificado.
+     *
+     * @param id ID de la función a modificar.
+     * @param entity Objeto DTO con los campos modificados.
+     * @return FunctionDetailDTO con la información de la función actualizada.
+     * @throws NotFoundException si la función, sala o película no existen.
+     * @throws BadRequestException si hay conflictos de horario, validaciones o restricciones.
      */
     public FunctionDetailDTO updateById(Long id, FunctionRequestDTO entity) {
+        FunctionValidator.validateId(id);
         FunctionValidator.validateFields(entity);
+        FunctionValidator.validateMaxTwoYears(entity);
+
+        Function function = functionRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException("La función con ID: " + id + " no fue encontrada."));
 
         if (functionRepo.existsByCinemaIdAndShowtime(entity.getCinemaId(), entity.getShowtime())) {
             throw new BadRequestException("Ya existe una función para esa sala en ese horario.");
         }
-
-        FunctionValidator.validateMaxTwoYears(entity);
 
         Cinema cinema = cinemaRepo.findById(entity.getCinemaId())
                 .orElseThrow(() -> new NotFoundException("No existe la sala ingresada."));
         FunctionValidator.validateEnabledCinema(cinema);
 
         Movie movie = movieRepo.findById(entity.getMovieId())
-                .orElseThrow(() -> new NotFoundException("No existe la pelicula ingresada."));
+                .orElseThrow(() -> new NotFoundException("No existe la película ingresada."));
 
-        List<Function> functionsInTheCinema = functionRepo.findByCinemaId(entity.getCinemaId());
-        FunctionValidator.validateSchedule(entity, movie, functionsInTheCinema);
+        List<Function> functionsInCinema = functionRepo.findByCinemaId(entity.getCinemaId());
+        FunctionValidator.validateSchedule(entity, movie, functionsInCinema);
 
-        return functionRepo.findById(id)
-                .map(f -> {
-                    f.setShowtime(entity.getShowtime());
-                    f.setCinema(cinema);
-                    f.setMovie(movie);
-                    f.setAvailableCapacity(cinema.getSeatCapacity());
+        function.setShowtime(entity.getShowtime());
+        function.setCinema(cinema);
+        function.setMovie(movie);
+        function.setAvailableCapacity(cinema.getSeatCapacity());
 
-                    Function updated = functionRepo.save(f);
-                    return mapToDetailDTO(updated);
-                })
-                .orElseThrow(() -> new NotFoundException("La funcion con ID: " + id + " no fue encontrada."));
+        Function updated = functionRepo.save(function);
+        return mapToDetailDTO(updated);
     }
 
 

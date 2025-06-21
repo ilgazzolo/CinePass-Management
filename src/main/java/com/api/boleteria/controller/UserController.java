@@ -31,12 +31,18 @@ public class UserController {
     /**
      * Obtiene la lista de todos los usuarios.
      *
-     * @return ResponseEntity con la lista de usuarios.
+     * @return ResponseEntity con la lista de usuarios o 204 No Content si no hay usuarios registrados.
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserListDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.findAllUsers());
+        List<UserListDTO> users = userService.findAllUsers();
+
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(users);
     }
 
     /**

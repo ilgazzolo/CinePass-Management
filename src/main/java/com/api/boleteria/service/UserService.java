@@ -80,28 +80,35 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Muestra usuario por id.
+     * Busca un usuario por su ID.
      *
-     * @param id ID de usuario a mostrar.
+     * @param id ID del usuario a buscar.
      * @return UserDetailDTO con la información del usuario encontrado.
+     * @throws BadRequestException si el ID es inválido.
+     * @throws NotFoundException si no se encuentra un usuario con el ID proporcionado.
      */
     public UserDetailDTO findById(Long id) {
+        UserValidator.validateId(id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("El usuario con ID: " + id + " no fue encontrado."));
         return mapToDetailDTO(user);
     }
 
     /**
-     * Muestra usuario por nombre de usuario.
+     * Busca un usuario por su nombre de usuario.
      *
-     * @param username Nombre de usuario a mostrar.
+     * @param username Nombre de usuario a buscar.
      * @return UserDetailDTO con la información del usuario encontrado.
+     * @throws BadRequestException si el nombre de usuario es inválido.
+     * @throws NotFoundException si no se encuentra un usuario con el nombre proporcionado.
      */
     public UserDetailDTO findByUsername(String username) {
+        UserValidator.validateUsername(username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("El usuario con nombre: " + username + " no fue encontrado"));
         return mapToDetailDTO(user);
     }
+
 
     /**
      * Obtiene los datos del perfil del usuario autenticado actualmente.
@@ -270,7 +277,6 @@ public class UserService implements UserDetailsService {
         user.setSurname(dto.getSurname());
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
-        user.setRole(dto.getRole());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
     }
 

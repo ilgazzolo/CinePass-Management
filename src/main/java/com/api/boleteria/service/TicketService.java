@@ -113,15 +113,17 @@ public class TicketService {
     }
 
     /**
-     * Obtiene un ticket específico por su ID, validando que pertenezca al usuario autenticado.
+     * Obtiene un ticket específico por su ID, validando que el ID sea válido y que el ticket pertenezca al usuario autenticado.
      *
      * @param ticketId ID del ticket a buscar.
      * @return TicketDetailDTO con los datos del ticket.
+     * @throws IllegalArgumentException si el ID del ticket es nulo o menor o igual a cero.
+     * @throws NotFoundException si no se encuentra un ticket con el ID especificado.
      * @throws AccesDeniedException si el ticket no pertenece al usuario autenticado.
      */
     public TicketDetailDTO findTicketById(Long ticketId) {
         User user = userService.findAuthenticatedUser();
-
+        TicketValidator.validateTicketId(ticketId);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new NotFoundException("No se encontró el ticket con ID: " + ticketId));
 

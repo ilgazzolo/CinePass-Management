@@ -29,7 +29,7 @@ public class FunctionValidator {
      * @param showtime Fecha y hora de la función.
      * @throws BadRequestException si la fecha es nula o está en el pasado.
      */
-    private static void validateShowtime(LocalDateTime showtime) {
+    public static void validateShowtime(LocalDateTime showtime) {
         if (showtime == null) {
             throw new BadRequestException("La fecha de la función no puede ser nula.");
         }
@@ -44,7 +44,7 @@ public class FunctionValidator {
      * @param cinemaId ID del cine.
      * @throws BadRequestException si el ID es nulo o menor o igual a cero.
      */
-    private static void validateCinemaId(Long cinemaId) {
+    public static void validateCinemaId(Long cinemaId) {
         if (cinemaId == null || cinemaId <= 0) {
             throw new BadRequestException("El ID del cine no es válido.");
         }
@@ -56,13 +56,20 @@ public class FunctionValidator {
      * @param movieId ID de la película.
      * @throws BadRequestException si el ID es nulo o menor o igual a cero.
      */
-    private static void validateMovieId(Long movieId) {
+    public static void validateMovieId(Long movieId) {
         if (movieId == null || movieId <= 0) {
             throw new BadRequestException("El ID de la película no es válido.");
         }
     }
 
-    // Validación de solapamiento de horarios en la misma sala
+    /**
+     * Valida que no haya solapamiento de horarios con funciones ya existentes en la misma sala.
+     *
+     * @param dto DTO con la nueva función a validar.
+     * @param movie Película que se va a proyectar.
+     * @param functionsInTheCinema Lista de funciones existentes en esa sala.
+     * @throws BadRequestException si hay superposición de horarios.
+     */
     public static void validateSchedule(FunctionRequestDTO dto, Movie movie, List<Function> functionsInTheCinema) {
         LocalDateTime newStart = dto.getShowtime();
         LocalDateTime newEnd = newStart.plusMinutes(movie.getDuration());
@@ -78,19 +85,39 @@ public class FunctionValidator {
         }
     }
 
-    // valida que no se creen funciones para un maximo de dos años
+    /**
+     * Valida que la fecha de la función no sea mayor a dos años desde la fecha actual.
+     *
+     * @param dto DTO de la función a validar.
+     * @throws BadRequestException si la fecha excede el límite de dos años.
+     */
     public static void validateMaxTwoYears(FunctionRequestDTO dto) {
         if (dto.getShowtime().isAfter(LocalDateTime.now().plusYears(2))) {
             throw new BadRequestException("La fecha de la función es demasiado lejana.");
         }
     }
 
+    /**
+     * Valida que la sala esté habilitada para proyectar funciones.
+     *
+     * @param cinema Sala donde se proyectará la función.
+     * @throws BadRequestException si la sala no está habilitada.
+     */
     public static void validateEnabledCinema(Cinema cinema) {
         if (!cinema.getEnabled()) {
             throw new BadRequestException("La sala " + cinema.getName() + " no está habilitada.");
         }
     }
 
-
-
+    /**
+     * Valida que el ID de la función sea válido (no nulo y mayor a cero).
+     *
+     * @param id ID de la función.
+     * @throws BadRequestException si el ID es inválido.
+     */
+    public static void validateId(Long id) {
+        if (id == null || id <= 0) {
+            throw new BadRequestException("El ID de la función debe ser un número positivo.");
+        }
+    }
 }

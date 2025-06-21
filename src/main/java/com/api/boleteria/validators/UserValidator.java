@@ -45,7 +45,7 @@ public class UserValidator {
      * @param name Nombre a validar.
      * @throws IllegalArgumentException si la validación falla.
      */
-    private static void validateName(String name) {
+    public static void validateName(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("El nombre no puede estar vacío.");
         }
@@ -63,7 +63,7 @@ public class UserValidator {
      * @param surname Apellido a validar.
      * @throws IllegalArgumentException si la validación falla.
      */
-    private static void validateSurname(String surname) {
+    public static void validateSurname(String surname) {
         if (surname == null || surname.isBlank()) {
             throw new IllegalArgumentException("El apellido no puede estar vacío.");
         }
@@ -81,7 +81,7 @@ public class UserValidator {
      * @param username Nombre de usuario a validar.
      * @throws IllegalArgumentException si la validación falla.
      */
-    private static void validateUsername(String username) {
+    public static void validateUsername(String username) {
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("El nombre de usuario no puede estar vacío.");
         }
@@ -96,7 +96,7 @@ public class UserValidator {
      * @param email Email a validar.
      * @throws IllegalArgumentException si la validación falla.
      */
-    private static void validateEmail(String email) {
+    public static void validateEmail(String email) {
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("El email no puede estar vacío.");
         }
@@ -111,7 +111,7 @@ public class UserValidator {
      * @param password Contraseña a validar.
      * @throws IllegalArgumentException si la validación falla.
      */
-    private static void validatePassword(String password) {
+    public static void validatePassword(String password) {
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("La contraseña no puede estar vacía.");
         }
@@ -120,6 +120,18 @@ public class UserValidator {
         }
         if (!PASSWORD_PATTERN.matcher(password).matches()) {
             throw new IllegalArgumentException("La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales.");
+        }
+    }
+
+    /**
+     * Valida que el ID del usuario sea un número positivo y no nulo.
+     *
+     * @param id ID del usuario a validar.
+     * @throws IllegalArgumentException si el ID es nulo o menor o igual a cero.
+     */
+    public static void validateId(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("El ID del usuario debe ser un número positivo.");
         }
     }
 }
