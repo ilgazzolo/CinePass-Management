@@ -3,12 +3,13 @@ package com.api.boleteria.service;
 import com.api.boleteria.dto.detail.CinemaDetailDTO;
 import com.api.boleteria.dto.list.CinemaListDTO;
 import com.api.boleteria.dto.request.CinemaRequestDTO;
-import com.api.boleteria.exception.NotFoundException;
-import com.api.boleteria.model.Cinema;
-import com.api.boleteria.model.enums.ScreenType;
-import com.api.boleteria.repository.ICinemaRepository;
-import com.api.boleteria.repository.IFunctionRepository;
-import com.api.boleteria.validators.CinemaValidator;
+import com.api.boleteria.exception.BadRequestException; //
+import com.api.boleteria.exception.NotFoundException; //
+import com.api.boleteria.model.Cinema; //
+import com.api.boleteria.model.enums.ScreenType; //
+import com.api.boleteria.repository.ICinemaRepository; //
+import com.api.boleteria.repository.IFunctionRepository; //
+import com.api.boleteria.validators.CinemaValidator; //
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,12 +35,19 @@ public class CinemaService {
      *
      * @param requests Lista de DTOs con los datos de cada sala a crear.
      * @return Lista de CinemaDetailDTO con la información de las salas creadas.
+     * @throws BadRequestException si alguna sala ya existe con el mismo nombre.
      */
     public List<CinemaDetailDTO> saveAll(List<CinemaRequestDTO> requests) {
         List<Cinema> cinemasToSave = new ArrayList<>();
 
         for (CinemaRequestDTO dto : requests) {
             CinemaValidator.validateFields(dto);
+
+            // Verificar si ya existe una sala con el mismo nombre
+            if (cinemaRepository.existsByName(dto.getNombre())) { //
+                throw new BadRequestException("Ya existe una sala con el nombre: " + dto.getNombre()); //
+            }
+
             cinemasToSave.add(mapToEntity(dto));
         }
 
@@ -133,9 +141,19 @@ public class CinemaService {
 
     public CinemaDetailDTO updateById(Long id, CinemaRequestDTO entity) {
         CinemaValidator.validateFields(entity);
+
+        // Verificar si el nuevo nombre ya existe en otra sala (excluyendo la sala actual)
+        if (cinemaRepository.existsByNameAndIdNot(entity.getNombre(), id)) { //
+            throw new BadRequestException("Ya existe otra sala con el nombre: " + entity.getNombre()); //
+        }
+
         return cinemaRepository.findById(id)
                 .map(c -> {
+                    c.setName(entity.getNombre()); // Actualizar también el nombre
+                    c.setScreenType(entity.getScreenType());
+                    c.setAtmos(entity.getAtmos());
                     c.setSeatCapacity(entity.getCapacity());
+                    c.setEnabled(entity.getEnabled());
                     Cinema updated = cinemaRepository.save(c);
                     return mapToDetailDTO(updated);
                 })
@@ -213,4 +231,3 @@ public class CinemaService {
         return cinema;
     }
 }
-

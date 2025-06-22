@@ -12,4 +12,6 @@ public interface ICinemaRepository extends JpaRepository<Cinema, Long> {
     List<Cinema> findByScreenType(ScreenType screenType);
     List<Cinema> findByEnabled(boolean enabled);
     List<Cinema> findBySeatCapacityGreaterThan(Integer seatCapacity);
+    boolean existsByName(String name); //
+    boolean existsByNameAndIdNot(String name, Long id); //
 }
