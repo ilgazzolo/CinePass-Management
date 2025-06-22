@@ -5,12 +5,12 @@ import com.api.boleteria.dto.detail.UserDetailDTO;
 import com.api.boleteria.dto.list.UserListDTO;
 import com.api.boleteria.dto.request.LoginRequestDTO;
 import com.api.boleteria.dto.request.RegisterRequestDTO;
-import com.api.boleteria.exception.BadRequestException;
-import com.api.boleteria.exception.NotFoundException;
+import com.api.boleteria.exception.BadRequestException; //
+import com.api.boleteria.exception.NotFoundException; //
 import com.api.boleteria.model.enums.Role;
-import com.api.boleteria.model.User;
-import com.api.boleteria.repository.IUserRepository;
-import com.api.boleteria.validators.UserValidator;
+import com.api.boleteria.model.User; //
+import com.api.boleteria.repository.IUserRepository; //
+import com.api.boleteria.validators.UserValidator; //
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -139,15 +139,25 @@ public class UserService implements UserDetailsService {
     //-------------------------------UPDATE--------------------------------//
 
     /**
-     * Actualización de usuario.
+     * Actualización de usuario autenticado.
      *
      * @param req DTO del usuario con cambios realizados.
      * @return UserDetailDTO con la información actualizada del usuario especificado.
+     * @throws BadRequestException si el nuevo username o email ya están en uso por otro usuario.
      */
-
     public UserDetailDTO update(RegisterRequestDTO req) {
         User user = findAuthenticatedUser();
         UserValidator.validateFields(req);
+
+        // Validar si el nuevo username ya existe para otro usuario
+        if (!user.getUsername().equals(req.getUsername()) && userRepository.existsByUsernameAndIdNot(req.getUsername(), user.getId())) { //
+            throw new BadRequestException("El nombre de usuario '" + req.getUsername() + "' ya está en uso por otro usuario."); //
+        }
+
+        // Validar si el nuevo email ya existe para otro usuario
+        if (!user.getEmail().equals(req.getEmail()) && userRepository.existsByEmailAndIdNot(req.getEmail(), user.getId())) { //
+            throw new BadRequestException("El email '" + req.getEmail() + "' ya está registrado por otro usuario."); //
+        }
 
         updateEntityFromDto(req, user);
 

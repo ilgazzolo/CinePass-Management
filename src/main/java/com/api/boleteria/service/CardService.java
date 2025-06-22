@@ -2,13 +2,13 @@ package com.api.boleteria.service;
 
 import com.api.boleteria.dto.detail.CardDetailDTO;
 import com.api.boleteria.dto.request.CardRequestDTO;
-import com.api.boleteria.exception.BadRequestException;
-import com.api.boleteria.exception.NotFoundException;
-import com.api.boleteria.model.Card;
-import com.api.boleteria.model.User;
-import com.api.boleteria.repository.ICardRepository;
+import com.api.boleteria.exception.BadRequestException; //
+import com.api.boleteria.exception.NotFoundException; //
+import com.api.boleteria.model.Card; //
+import com.api.boleteria.model.User; //
+import com.api.boleteria.repository.ICardRepository; //
 import com.api.boleteria.repository.IUserRepository;
-import com.api.boleteria.validators.CardValidator;
+import com.api.boleteria.validators.CardValidator; //
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -39,9 +39,15 @@ public class CardService {
      *
      * @param dto Datos necesarios para crear la tarjeta.
      * @return DTO con el detalle de la tarjeta creada.
+     * @throws BadRequestException si el número de tarjeta ya está en uso.
      */
     public CardDetailDTO save(CardRequestDTO dto) {
         cardValidator.validateCard(dto);
+
+        // Validar si el número de tarjeta ya existe globalmente
+        if (cardRepository.existsByCardNumber(dto.getCardNumber())) { //
+            throw new BadRequestException("El número de tarjeta '" + dto.getCardNumber() + "' ya está registrado."); //
+        }
 
         Card card = mapToEntity(dto);
         Card saved = cardRepository.save(card);
@@ -117,6 +123,7 @@ public class CardService {
      *
      * @param dto DTO con los datos nuevos.
      * @return DTO actualizado.
+     * @throws BadRequestException si el número de tarjeta ya está en uso por otra tarjeta.
      */
 
     public CardDetailDTO updateAuthenticatedUserCard(CardRequestDTO dto) {
@@ -125,6 +132,11 @@ public class CardService {
 
         return cardRepository.findByUserId(user.getId())
                 .map(card -> {
+                    // Validar si el nuevo número de tarjeta ya existe para otra tarjeta (excluyendo la tarjeta actual)
+                    if (!card.getCardNumber().equals(dto.getCardNumber()) && cardRepository.existsByCardNumberAndIdNot(dto.getCardNumber(), card.getId())) { //
+                        throw new BadRequestException("El número de tarjeta '" + dto.getCardNumber() + "' ya está registrado por otra tarjeta."); //
+                    }
+
                     card.setCardNumber(dto.getCardNumber());
                     card.setCardholderName(dto.getCardholderName());
                     card.setExpirationDate(dto.getExpirationDate());
