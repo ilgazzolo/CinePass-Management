@@ -33,7 +33,7 @@ public class TicketController {
      * @return ResponseEntity con la lista de boletos comprados y sus detalles.
      */
 
-    @PostMapping("/comprar")
+    @PostMapping("/buy")
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<List<TicketDetailDTO>> buyTicket(@RequestBody @Valid TicketRequestDTO entity) {
         return ResponseEntity.ok(ticketService.buyTickets(entity));
@@ -44,18 +44,14 @@ public class TicketController {
     //-------------------------------GET--------------------------------//
 
     /**
-     * Obtiene la lista de boletos asociados al usuario autenticado.
+     * Obtiene la lista de boletos del usuario autenticado.
      *
-     * @return ResponseEntity con la lista de boletos detallados,
-     *         o un estado 204 No Content si no hay boletos.
+     * @return ResponseEntity con la lista de tickets.
      */
     @GetMapping
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<List<TicketDetailDTO>> getTickets() {
         List<TicketDetailDTO> tickets = ticketService.findTicketsFromAuthenticatedUser();
-        if (tickets.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(tickets);
     }
 

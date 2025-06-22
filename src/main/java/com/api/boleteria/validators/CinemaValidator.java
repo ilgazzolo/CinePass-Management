@@ -18,24 +18,24 @@ public class CinemaValidator {
      * @throws BadRequestException si alguna validación falla.
      */
     public static void validateFields(CinemaRequestDTO dto) {
-        validateNombre(dto.getNombre());
+        validateName(dto.getNombre());
         validateScreenType(dto.getScreenType());
         validateCapacity(dto.getCapacity());
         validateAtmos(dto.getAtmos());
-        validateHabilitada(dto.getEnabled());
+        validateEnabled(dto.getEnabled());
     }
 
     /**
      * Valida el nombre del cine.
      *
-     * @param nombre Nombre a validar.
+     * @param name Nombre a validar.
      * @throws BadRequestException si el nombre es nulo, vacío o excede 100 caracteres.
      */
-    private static void validateNombre(String nombre) {
-        if (nombre == null || nombre.isBlank()) {
+    public static void validateName(String name) {
+        if (name == null || name.isBlank()) {
             throw new BadRequestException("El nombre no puede ser nulo ni estar vacío.");
         }
-        if (nombre.length() > 100) {
+        if (name.length() > 100) {
             throw new BadRequestException("El nombre debe tener máximo 100 caracteres.");
         }
     }
@@ -58,7 +58,7 @@ public class CinemaValidator {
      * @param capacity Capacidad a validar.
      * @throws BadRequestException si es nula o no está entre 1 y 200.
      */
-    private static void validateCapacity(Integer capacity) {
+    public static void validateCapacity(Integer capacity) {
         if (capacity == null) {
             throw new BadRequestException("La capacidad no puede ser nula.");
         }
@@ -73,7 +73,7 @@ public class CinemaValidator {
      * @param atmos Valor a validar.
      * @throws BadRequestException si es nulo.
      */
-    private static void validateAtmos(Boolean atmos) {
+    public static void validateAtmos(Boolean atmos) {
         if (atmos == null) {
             throw new BadRequestException("El atributo Atmos no puede ser nulo.");
         }
@@ -82,12 +82,24 @@ public class CinemaValidator {
     /**
      * Valida si la sala está habilitada.
      *
-     * @param habilitada Valor a validar.
+     * @param enabled Valor a validar.
      * @throws BadRequestException si es nulo.
      */
-    private static void validateHabilitada(Boolean habilitada) {
-        if (habilitada == null) {
+    public static void validateEnabled(Boolean enabled) {
+        if (enabled == null) {
             throw new BadRequestException("El atributo 'habilitada' no puede ser nulo.");
+        }
+    }
+
+    /**
+     * Valida que el ID de la sala sea válido (no nulo y mayor a 0).
+     *
+     * @param id ID de la sala a validar.
+     * @throws IllegalArgumentException si el ID es nulo o menor o igual a cero.
+     */
+    public static void validateId(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("El ID de la sala debe ser mayor a 0 y no puede ser nulo.");
         }
     }
 }

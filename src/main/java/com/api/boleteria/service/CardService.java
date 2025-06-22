@@ -24,12 +24,11 @@ import org.springframework.stereotype.Service;
 public class CardService {
 
     private final ICardRepository cardRepository;
-    private final IUserRepository userRepository;
     private final CardValidator cardValidator;
     private final UserService userService;
 
-    private static final double MAX_RECHARGE_AMOUNT = 20000.0;
-    private static final double MAX_TOTAL_BALANCE = 1000000.0;
+    public static final double MAX_RECHARGE_AMOUNT = 20000.0;
+    public static final double MAX_TOTAL_BALANCE = 1000000.0;
 
 
     //-------------------------------SAVE--------------------------------//
@@ -95,22 +94,14 @@ public class CardService {
      * @return DTO con el detalle actualizado.
      */
     public CardDetailDTO rechargeBalance(Double amount) {
-        if (amount == null || amount <= 0) {
-            throw new BadRequestException("El monto debe ser mayor que cero.");
-        }
-
-        if (amount > MAX_RECHARGE_AMOUNT) {
-            throw new BadRequestException("El monto excede el límite máximo de recarga permitido: $" + MAX_RECHARGE_AMOUNT);
-        }
+       CardValidator.validateRechargeAmount(amount);
 
         User user = userService.findAuthenticatedUser();
 
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("El usuario: " + user.getUsername() + " no tiene una tarjeta registrada."));
 
-        if (card.getBalance() + amount > MAX_TOTAL_BALANCE) {
-            throw new BadRequestException("El saldo total no puede superar $" + MAX_TOTAL_BALANCE);
-        }
+       CardValidator.validateTotalBalance(card.getBalance(), amount);
 
         card.setBalance(card.getBalance() + amount);
         cardRepository.save(card);
@@ -118,44 +109,17 @@ public class CardService {
         return mapToDetailDTO(card);
     }
 
-    /**
-     * Actualiza los datos de la tarjeta del usuario autenticado.
-     *
-     * @param dto DTO con los datos nuevos.
-     * @return DTO actualizado.
-     * @throws BadRequestException si el número de tarjeta ya está en uso por otra tarjeta.
-     */
-
-    public CardDetailDTO updateAuthenticatedUserCard(CardRequestDTO dto) {
-        cardValidator.validateCard(dto);
-        User user = userService.findAuthenticatedUser();
-
-        return cardRepository.findByUserId(user.getId())
-                .map(card -> {
-                    // Validar si el nuevo número de tarjeta ya existe para otra tarjeta (excluyendo la tarjeta actual)
-                    if (!card.getCardNumber().equals(dto.getCardNumber()) && cardRepository.existsByCardNumberAndIdNot(dto.getCardNumber(), card.getId())) { //
-                        throw new BadRequestException("El número de tarjeta '" + dto.getCardNumber() + "' ya está registrado por otra tarjeta."); //
-                    }
-
-                    card.setCardNumber(dto.getCardNumber());
-                    card.setCardholderName(dto.getCardholderName());
-                    card.setExpirationDate(dto.getExpirationDate());
-                    card.setIssueDate(dto.getIssueDate());
-                    card.setCvv(dto.getCvv());
-                    card.setCardType(dto.getCardType());
-
-                    Card updated = cardRepository.save(card);
-                    return mapToDetailDTO(updated);
-                })
-                .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: " + user.getUsername()));
-    }
 
 
 
-    //-------------------------------DELETE--------------------------------//
+//-------------------------------DELETE--------------------------------//
 
     /**
      * Elimina la tarjeta asociada al usuario autenticado.
+     *
+     * Obtiene el usuario actualmente autenticado y busca la tarjeta
+     * asociada a ese usuario. Si no se encuentra ninguna tarjeta, lanza
+     * una excepción NotFoundException. Si existe, elimina la tarjeta del repositorio.
      */
     public void deleteFromAuthenticatedUser() {
         User user = userService.findAuthenticatedUser();
@@ -167,8 +131,17 @@ public class CardService {
     }
 
 
-    //-------------------------------MAPS--------------------------------//
+//-------------------------------MAPS--------------------------------//
 
+    /**
+     * Convierte un objeto CardRequestDTO a una entidad Card.
+     *
+     * Inicializa la tarjeta con los datos del DTO, balance en 0.0 y
+     * asocia la tarjeta al usuario autenticado.
+     *
+     * @param dto Objeto con los datos de la tarjeta a crear.
+     * @return La entidad Card creada a partir del DTO.
+     */
     private Card mapToEntity(CardRequestDTO dto) {
         Card card = new Card();
         card.setCardNumber(dto.getCardNumber());
@@ -182,6 +155,16 @@ public class CardService {
         return card;
     }
 
+    /**
+     * Convierte una entidad Card a un DTO de detalle CardDetailDTO.
+     *
+     * Transforma la entidad en un objeto que contiene la información
+     * necesaria para la presentación o respuesta, incluyendo el ID
+     * del usuario asociado.
+     *
+     * @param card Entidad Card a convertir.
+     * @return DTO con los detalles de la tarjeta.
+     */
     private CardDetailDTO mapToDetailDTO(Card card) {
         return new CardDetailDTO(
                 card.getId(),
@@ -194,4 +177,5 @@ public class CardService {
                 card.getUser().getId()
         );
     }
+
 }

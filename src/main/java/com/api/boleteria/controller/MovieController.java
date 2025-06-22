@@ -46,7 +46,7 @@ public class MovieController {
      * @param entity Lista de DTOs con la información necesaria para crear las películas.
      * @return ResponseEntity con la lista de películas creadas.
      */
-    @PostMapping("/register")
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<MovieDetailDTO>> create(@Valid @RequestBody List<@Valid MovieRequestDTO> entity) {
         return ResponseEntity.status(HttpStatus.CREATED).body(movieService.createAll(entity));
@@ -58,16 +58,12 @@ public class MovieController {
     /**
      * Obtiene la lista de todas las películas.
      *
-     * @return ResponseEntity con una lista de peliculas o 204 No Content si no hay peliculas.
      */
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<MovieListDTO>> getAll() {
         List<MovieListDTO> movieList = movieService.findAll();
-        if (movieList.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(movieList);
     }
 
@@ -87,7 +83,6 @@ public class MovieController {
     /**
      * Obtiene una lista de películas que coinciden con el género especificado.
      * <p>
-     * Si no se encuentran películas del género dado, se devuelve una respuesta con código 204 (No Content).
      *
      * @param genre Género de las películas a buscar.
      * @return ResponseEntity con la lista de MovieListDTO si hay resultados,
@@ -96,11 +91,6 @@ public class MovieController {
     @GetMapping("/genre/{genre}")
     public ResponseEntity<List<MovieListDTO>> findByGenre(@PathVariable String genre) {
         List<MovieListDTO> movies = movieService.findByMovieGenre(genre);
-
-        if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
         return ResponseEntity.ok(movies);
     }
 

@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controlador REST para la gestión de cines.
@@ -42,7 +43,7 @@ public class CinemaController {
      * @param entity DTO con la información de la sala a crear.
      * @return ResponseEntity con el detalle de la sala creada.
      */
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CinemaDetailDTO>> create(@Valid @RequestBody List<@Valid CinemaRequestDTO> entity){
         return ResponseEntity.ok(cinemaService.saveAll(entity));
@@ -61,11 +62,6 @@ public class CinemaController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<CinemaListDTO>> getList(){
         List<CinemaListDTO> list = cinemaService.findAll();
-
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-
         return ResponseEntity.ok(list);
     }
 
@@ -88,14 +84,10 @@ public class CinemaController {
      * @param screenType Tipo de pantalla para filtrar.
      * @return ResponseEntity con la lista de salas o 204 No Content si no hay coincidencias.
      */
-    @GetMapping("/ScreenType/{screenType}")
+    @GetMapping("/screenType/{screenType}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<CinemaListDTO>> getByScreenType(@PathVariable ScreenType screenType){
         List<CinemaListDTO> list = cinemaService.findByScreenType(screenType);
-
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(list);
     }
 
@@ -106,14 +98,10 @@ public class CinemaController {
      * @param enabled Estado habilitado para filtrar (true o false).
      * @return ResponseEntity con la lista de salas o 204 No Content si no hay coincidencias.
      */
-    @GetMapping("/Enabled/{enabled}")
+    @GetMapping("/enabled/{enabled}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<CinemaListDTO>> getByEnabledRoom(@PathVariable boolean enabled){
         List<CinemaListDTO> list = cinemaService.findByEnabledRoom(enabled);
-
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(list);
     }
 
@@ -123,13 +111,9 @@ public class CinemaController {
      * @param capacity Capacidad de asientos para filtrar.
      * @return ResponseEntity con la lista de salas o 204 No Content si no hay coincidencias.
      */
-    @GetMapping("/Capacity/{capacity}")
+    @GetMapping("/capacity/{capacity}")
     public ResponseEntity<List<CinemaListDTO>> getBySeatCapacity(@PathVariable Integer capacity){
         List<CinemaListDTO> list = cinemaService.findBySeatCapacity(capacity);
-
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(list);
     }
 
@@ -143,10 +127,27 @@ public class CinemaController {
      * @param entity DTO con la nueva información para la sala.
      * @return ResponseEntity con el detalle actualizado de la sala.
      */
-    @PutMapping("/{id}")
+    @PutMapping("update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CinemaDetailDTO> update(@PathVariable Long id, @Valid @RequestBody CinemaRequestDTO entity){
         return ResponseEntity.ok(cinemaService.updateById(id, entity));
+    }
+
+    /**
+     * Actualiza el estado 'enabled' de una sala según su ID.
+     *
+     * @param id ID de la sala a modificar.
+     * @param enabledPayload Mapa con el nuevo valor para el atributo 'enabled'.
+     * @return ResponseEntity con la sala actualizada.
+     */
+    @PatchMapping("/{id}/enabled")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CinemaDetailDTO> updateEnabled(
+            @PathVariable Long id,
+            @RequestBody Map<String, Boolean> enabledPayload) {
+
+        Boolean enabled = enabledPayload.get("enabled");
+        return ResponseEntity.ok( cinemaService.updateEnabledById(id, enabled));
     }
 
 
@@ -159,7 +160,7 @@ public class CinemaController {
      * @param id Identificador de la sala a eliminar.
      * @return ResponseEntity con mensaje confirmando la eliminación.
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         cinemaService.deleteById(id);

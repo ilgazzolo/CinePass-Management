@@ -24,7 +24,6 @@ import java.util.List;
 public class MovieService {
 
     private final IMovieRepository movieRepository;
-    private final IFunctionRepository functionRepository;
 
 
     //-------------------------------SAVE--------------------------------//
@@ -65,26 +64,43 @@ public class MovieService {
     //-------------------------------FIND--------------------------------//
 
     /**
-     * muestra todas las peliculas asociadas a un genero en especifico
-     * @param genre genero de la pelicula a mostrar
-     * @return lista de MovieList con la informacion de las peliculas encontradas
+     * Muestra todas las películas asociadas a un género en específico.
+     *
+     * @param genre género de la película a mostrar.
+     * @return lista de MovieListDTO con la información de las películas encontradas.
+     * @throws NotFoundException si no se encontraron películas para el género dado.
      */
     public List<MovieListDTO> findByMovieGenre(String genre) {
         MovieValidator.validateGenre(genre);
-        return movieRepository.findByMovieGenre(genre).stream()
+        List<MovieListDTO> list = movieRepository.findByMovieGenre(genre).stream()
                 .map(this::mapToListDTO)
                 .toList();
+
+        if (list.isEmpty()) {
+            throw new NotFoundException("No se encontraron películas para el género: " + genre);
+        }
+
+        return list;
     }
 
     /**
-     * obtiene todas las peliculas cargadas
-     * @return lista de MovieList con la informacion de las peliculas encontradas
+     * Obtiene todas las películas cargadas.
+     *
+     * @return lista de MovieListDTO con la información de las películas encontradas.
+     * @throws NotFoundException si no hay películas cargadas.
      */
     public List<MovieListDTO> findAll() {
-        return movieRepository.findAll().stream()
+        List<MovieListDTO> list = movieRepository.findAll().stream()
                 .map(this::mapToListDTO)
                 .toList();
+
+        if (list.isEmpty()) {
+            throw new NotFoundException("No hay películas cargadas en el sistema.");
+        }
+
+        return list;
     }
+
 
     /**
      * obtiene una pelicula segun un ID especificado
@@ -140,6 +156,7 @@ public class MovieService {
                 })
                 .orElseThrow(() -> new NotFoundException("La película con ID: " + id + " no fue encontrada."));
     }
+
 
 
     //-------------------------------DELETE--------------------------------//

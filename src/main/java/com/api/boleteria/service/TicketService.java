@@ -103,14 +103,21 @@ public class TicketService {
      * Obtiene todos los tickets asociados al usuario autenticado.
      *
      * @return Lista de TicketDetailDTO con los tickets del usuario.
+     * @throws NotFoundException si el usuario no tiene tickets asociados.
      */
     public List<TicketDetailDTO> findTicketsFromAuthenticatedUser() {
         User user = userService.findAuthenticatedUser();
 
-        return user.getTickets().stream()
+        List<TicketDetailDTO> tickets = user.getTickets().stream()
                 .map(this::mapToDetailDTO)
                 .toList();
+        if (tickets.isEmpty()) {
+            throw new NotFoundException("El usuario " + user.getUsername() + " no tiene tickets asociados.");
+        }
+
+        return tickets;
     }
+
 
     /**
      * Obtiene un ticket específico por su ID, validando que el ID sea válido y que el ticket pertenezca al usuario autenticado.

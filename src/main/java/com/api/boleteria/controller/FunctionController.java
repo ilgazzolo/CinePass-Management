@@ -39,7 +39,7 @@ public class FunctionController {
      * @param entities Lista de DTOs con los datos necesarios para crear cada función.
      * @return ResponseEntity con la lista de detalles de las funciones creadas.
      */
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<FunctionDetailDTO>> create(@Valid @RequestBody List<@Valid FunctionRequestDTO> entities) {
         return ResponseEntity.ok(functionService.createAll(entities));
@@ -57,9 +57,6 @@ public class FunctionController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getAll() {
         List<FunctionListDTO> list = functionService.findAll();
-        if (list.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(list);
     }
 
@@ -85,36 +82,25 @@ public class FunctionController {
      * @param movieId Identificador de la película.
      * @return ResponseEntity con la lista de funciones disponibles o 204 si está vacía.
      */
-    @GetMapping("/disponibles/{movieId}")
+    @GetMapping("/available/{movieId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getAvailableFunctionsPerMovie(@PathVariable Long movieId) {
         List<FunctionListDTO> functions = functionService.findByMovieIdAndAvailableCapacity(movieId);
-
-        if (functions.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
         return ResponseEntity.ok(functions);
     }
 
     /**
      * Obtiene la lista de funciones filtradas por tipo de pantalla.
      * <p>
-     * Si no se encuentran funciones para el tipo de pantalla indicado,
-     * se devuelve una respuesta con estado 204 (No Content).
      *
      * @param screenType Tipo de pantalla para filtrar las funciones.
      * @return ResponseEntity con la lista de funciones que coinciden con el tipo de pantalla,
      * o estado 204 si no hay resultados.
      */
-    @GetMapping("/tipo-pantalla/{screenType}")
+    @GetMapping("/screentype/{screenType}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<FunctionListDTO>> getByScreenType(@PathVariable ScreenType screenType) {
         List<FunctionListDTO> functions = functionService.findByScreenType(screenType);
-
-        if (functions.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(functions);
     }
 
@@ -128,7 +114,7 @@ public class FunctionController {
          * @param entity DTO con los nuevos datos de la función.
          * @return ResponseEntity con el detalle actualizado de la función.
          */
-        @PutMapping("/{id}")
+        @PutMapping("/update/{id}")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<FunctionDetailDTO> update (@PathVariable Long id, @Valid @RequestBody FunctionRequestDTO
         entity){
@@ -144,7 +130,7 @@ public class FunctionController {
          * @param id Identificador de la función a eliminar.
          * @return ResponseEntity con mensaje confirmando la eliminación.
          */
-        @DeleteMapping("/{id}")
+        @DeleteMapping("/delete/{id}")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<String> delete(@PathVariable Long id){
             functionService.deleteById(id);

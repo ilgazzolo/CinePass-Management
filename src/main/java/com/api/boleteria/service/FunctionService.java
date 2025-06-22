@@ -87,11 +87,18 @@ public class FunctionService {
     //-------------------------------FIND--------------------------------//
 
     /**
-     * muestra todas las funciones
-     * @return Lista de FunctionList con la informacion de las funciones encontradas
+     * Muestra todas las funciones.
+     *
+     * @return Lista de FunctionListDTO con la información de las funciones encontradas.
+     * @throws NotFoundException si no hay funciones cargadas en el sistema.
      */
     public List<FunctionListDTO> findAll() {
-        return functionRepo.findAll().stream()
+        List<Function> functions = functionRepo.findAll();
+
+        if (functions.isEmpty()) {
+            throw new NotFoundException("No hay funciones cargadas en el sistema.");
+        }
+        return functions.stream()
                 .map(this::mapToListDTO)
                 .toList();
     }
@@ -119,7 +126,7 @@ public class FunctionService {
      * @param movieId ID de la película que se desea mostrar sus funciones.
      * @return Lista de FunctionListDTO con la información de las funciones encontradas.
      * @throws IllegalArgumentException si el ID proporcionado no es válido.
-     * @throws NotFoundException si no existe una película con el ID especificado.
+     * @throws NotFoundException si no existe una película con el ID especificado o si no hay funciones disponibles.
      */
     public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
         FunctionValidator.validateMovieId(movieId);
@@ -132,15 +139,21 @@ public class FunctionService {
                 .findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
                         movieId, 0, LocalDateTime.now());
 
+        if (functions.isEmpty()) {
+            throw new NotFoundException("No hay funciones disponibles para la película con ID " + movieId);
+        }
+
         return functions.stream()
                 .map(this::mapToListDTO)
                 .toList();
     }
 
     /**
-     * muestra las funciones segun un tipo de pantalla especificado
-     * @param screenType tipo de pantalla especificado
-     * @return Lista de Funciones encontradas
+     * Muestra las funciones según un tipo de pantalla especificado.
+     *
+     * @param screenType tipo de pantalla especificado.
+     * @return Lista de FunctionListDTO con las funciones encontradas.
+     * @throws NotFoundException si no hay funciones disponibles para el tipo de pantalla.
      */
     public List<FunctionListDTO> findByScreenType(ScreenType screenType) {
         CinemaValidator.validateScreenType(screenType);
@@ -149,6 +162,9 @@ public class FunctionService {
                 .findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
                         screenType, 0, LocalDateTime.now());
 
+        if (functions.isEmpty()) {
+            throw new NotFoundException("No hay funciones disponibles para el tipo de pantalla: " + screenType);
+        }
 
         return functions.stream()
                 .map(this::mapToListDTO)
@@ -248,6 +264,17 @@ public class FunctionService {
         );
     }
 
+    /**
+     * Convierte un FunctionRequestDTO en una entidad Function.
+     *
+     * Asocia la función al cine y a la película proporcionados, y
+     * asigna la capacidad disponible inicial igual a la capacidad de asientos del cine.
+     *
+     * @param entity DTO con los datos de la función a crear.
+     * @param cinema Entidad Cinema asociada a la función.
+     * @param movie Entidad Movie asociada a la función.
+     * @return Entidad Function creada a partir del DTO y las entidades asociadas.
+     */
     private Function mapToEntity(FunctionRequestDTO entity, Cinema cinema, Movie movie) {
         Function function = new Function();
         function.setShowtime(entity.getShowtime());
@@ -256,5 +283,6 @@ public class FunctionService {
         function.setMovie(movie);
         return function;
     }
+
 
 }

@@ -69,6 +69,7 @@ public class CinemaService {
      */
 
     public CinemaDetailDTO findById(Long id) {
+        CinemaValidator.validateId(id);
         Cinema cinema = cinemaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("La sala con ID: " + id + " no fue encontrada. "));
         return mapToDetailDTO(cinema);
@@ -81,6 +82,7 @@ public class CinemaService {
      */
 
     public List<CinemaListDTO> findByScreenType(ScreenType screenType) {
+        CinemaValidator.validateScreenType(screenType);
         List<CinemaListDTO> list = cinemaRepository.findByScreenType(screenType).stream()
                 .map(this::mapToListDTO)
                 .toList();
@@ -99,6 +101,7 @@ public class CinemaService {
      */
 
     public List<CinemaListDTO> findByEnabledRoom(boolean enabled) {
+        CinemaValidator.validateEnabled(enabled);
         List<CinemaListDTO> list = cinemaRepository.findByEnabled(enabled).stream()
                 .map(this::mapToListDTO)
                 .toList();
@@ -117,6 +120,7 @@ public class CinemaService {
      */
 
     public List<CinemaListDTO> findBySeatCapacity(Integer seatCapacity) {
+        CinemaValidator.validateCapacity(seatCapacity);
         List<CinemaListDTO> list = cinemaRepository.findBySeatCapacityGreaterThan(seatCapacity).stream()
                 .map(this::mapToListDTO)
                 .toList();
@@ -141,6 +145,7 @@ public class CinemaService {
 
     public CinemaDetailDTO updateById(Long id, CinemaRequestDTO entity) {
         CinemaValidator.validateFields(entity);
+        CinemaValidator.validateId(id);
 
         // Verificar si el nuevo nombre ya existe en otra sala (excluyendo la sala actual)
         if (cinemaRepository.existsByNameAndIdNot(entity.getNombre(), id)) { //
@@ -160,6 +165,31 @@ public class CinemaService {
                 .orElseThrow(() -> new NotFoundException("La sala con ID: " + id + " no fue encontrada. "));
     }
 
+    /**
+     * Actualiza solo el atributo 'enabled' de una sala según su ID.
+     *
+     * @param id ID de la sala a modificar.
+     * @param enabled Nuevo valor para el atributo 'enabled'.
+     * @return CinemaDetailDTO con la información actualizada de la sala.
+     * @throws NotFoundException si la sala con el ID especificado no existe.
+     */
+    public CinemaDetailDTO updateEnabledById(Long id, boolean enabled) {
+        CinemaValidator.validateEnabled(enabled);
+        CinemaValidator.validateId(id);
+
+        return cinemaRepository.findById(id)
+                .map(c -> {
+                    c.setEnabled(enabled);
+                    Cinema updated = cinemaRepository.save(c);
+                    return mapToDetailDTO(updated);
+                })
+                .orElseThrow(() -> new NotFoundException("La sala con ID: " + id + " no fue encontrada."));
+    }
+
+
+
+
+
 
 
     //-------------------------------DELETE--------------------------------//
@@ -169,6 +199,7 @@ public class CinemaService {
      * @param id ID de la sala a eliminar
      */
     public void deleteById(Long id) {
+        CinemaValidator.validateId(id);
         if (!cinemaRepository.existsById(id)) {
             throw new NotFoundException("La sala con ID: " + id + " no fue encontrada. ");
         }

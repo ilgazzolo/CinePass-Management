@@ -35,7 +35,7 @@ public class CardController {
      * @return ResponseEntity con el detalle de la tarjeta creada.
      */
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<CardDetailDTO> create(@RequestBody @Valid CardRequestDTO entity) {
         return ResponseEntity.ok(cardService.save(entity));
@@ -73,19 +73,6 @@ public class CardController {
 
     //-------------------------------UPDATE--------------------------------//
 
-    /**
-     * Actualiza la información de la tarjeta asociada al usuario autenticado.
-     *
-     * @param entity DTO con los nuevos datos para la tarjeta.
-     * @return ResponseEntity con el detalle actualizado de la tarjeta.
-     */
-
-    @PutMapping
-    @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<CardDetailDTO> update(@RequestBody @Valid CardRequestDTO entity) {
-        return ResponseEntity.ok(cardService.updateAuthenticatedUserCard(entity));
-    }
-
 
     /**
      * Recarga el saldo de la tarjeta del usuario autenticado con el monto especificado.
@@ -110,7 +97,7 @@ public class CardController {
      * @return ResponseEntity con estado 204 No Content si la eliminación fue exitosa.
      */
 
-    @DeleteMapping
+    @DeleteMapping("/delete")
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<Void> delete() {
         cardService.deleteFromAuthenticatedUser();

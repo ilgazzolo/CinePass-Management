@@ -52,7 +52,7 @@ public class UserController {
      * @return ResponseEntity con el detalle del usuario.
      */
 
-    @GetMapping("/Username/{username}")
+    @GetMapping("/username/{username}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDetailDTO> getUserByUsername(@PathVariable String username) {
         return ResponseEntity.ok(userService.findByUsername(username));
@@ -95,7 +95,7 @@ public class UserController {
      * @return ResponseEntity con mensaje de éxito o error si el usuario no existe.
      */
 
-    @PutMapping("/{username}/make-admin")
+    @PutMapping("/makeAdmin/{username}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDetailDTO> makeUserAdmin(@PathVariable String username) {
         return ResponseEntity.ok(userService.makeUserAdmin(username));
@@ -108,7 +108,7 @@ public class UserController {
      * @return ResponseEntity con el usuario actualizado.
      */
 
-    @PutMapping("/me")
+    @PutMapping("/me/update")
     @PreAuthorize("hasRole('ADMIN')or hasRole('CLIENT')")
     public ResponseEntity<UserDetailDTO> update(@RequestBody RegisterRequestDTO entity) {
         return ResponseEntity.ok(userService.update(entity));

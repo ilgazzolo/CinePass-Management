@@ -1,12 +1,16 @@
 package com.api.boleteria.validators;
 
 import com.api.boleteria.dto.request.CardRequestDTO;
+import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.model.enums.CardType;
 import org.springframework.stereotype.Service;
 
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+
+import static com.api.boleteria.service.CardService.MAX_RECHARGE_AMOUNT;
+import static com.api.boleteria.service.CardService.MAX_TOTAL_BALANCE;
 
 /**
  * Servicio de validación para tarjetas de crédito.
@@ -117,4 +121,35 @@ public class CardValidator {
 
         return (sum % 10 == 0);
     }
+
+    /**
+     * Valida que el monto de recarga sea positivo y no supere el límite máximo permitido.
+     *
+     * @param amount Monto a recargar.
+     * @throws BadRequestException si el monto es inválido.
+     */
+    public static void validateRechargeAmount(Double amount) {
+        if (amount == null || amount <= 0) {
+            throw new BadRequestException("El monto debe ser mayor que cero.");
+        }
+        if (amount > MAX_RECHARGE_AMOUNT) {
+            throw new BadRequestException("El monto excede el límite máximo de recarga permitido: $" + MAX_RECHARGE_AMOUNT);
+        }
+    }
+
+    /**
+     * Valida que el nuevo saldo total no supere el máximo permitido.
+     *
+     * @param currentBalance Saldo actual en la tarjeta.
+     * @param amount         Monto a recargar.
+     * @throws BadRequestException si el nuevo saldo supera el límite permitido.
+     */
+    public static void validateTotalBalance(Double currentBalance, Double amount) {
+        if (currentBalance + amount > MAX_TOTAL_BALANCE) {
+            throw new BadRequestException("El saldo total no puede superar $" + MAX_TOTAL_BALANCE);
+        }
+    }
+
+
+
 }
