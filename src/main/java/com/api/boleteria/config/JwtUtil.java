@@ -13,7 +13,6 @@ import java.util.List;
 /**
  * Clase utilitaria para crear y validar tokens JWT.
  */
-
 public class JwtUtil {
 
     private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);

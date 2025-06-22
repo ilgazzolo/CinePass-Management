@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/functions")
+@Validated
 public class FunctionController {
     private final FunctionService functionService;
 
@@ -39,7 +41,7 @@ public class FunctionController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<FunctionDetailDTO>> create(@Valid @RequestBody List<FunctionRequestDTO> entities) {
+    public ResponseEntity<List<FunctionDetailDTO>> create(@Valid @RequestBody List<@Valid FunctionRequestDTO> entities) {
         return ResponseEntity.ok(functionService.createAll(entities));
     }
 
