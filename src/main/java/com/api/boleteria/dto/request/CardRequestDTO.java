@@ -36,6 +36,4 @@ public class CardRequestDTO {
     @NotNull(message = "El tipo de tarjeta es obligatorio")
     private CardType cardType;
 
-    @NotNull(message = "Debe tener un usuario asociado")
-    private Long userId;
 }

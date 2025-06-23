@@ -3,9 +3,11 @@ package com.api.boleteria.exception;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -63,6 +65,54 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body("Error en el cuerpo de la solicitud.");
+    }
+
+    /**
+     * Maneja excepciones de tipo NullPointerException.
+     * Se lanza cuando se intenta acceder o invocar un método sobre un objeto nulo.
+     *
+     * Ejemplo común: cuando el campo "enabled" es null y se llama a enabled.booleanValue().
+     *
+     * @param ex Excepción capturada.
+     * @return ResponseEntity con mensaje descriptivo y código 500 (INTERNAL_SERVER_ERROR).
+     */
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<String> handleNullPointerException(NullPointerException ex) {
+        String message = "Faltan datos obligatorios o se está accediendo a un valor nulo.";
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
+    }
+
+    /**
+     * Maneja violaciones de integridad de datos en la base.
+     * Se lanza cuando se intenta insertar datos duplicados o violar restricciones únicas o foráneas.
+     *
+     * Ejemplo común: cuando se intenta asociar más de una tarjeta a un usuario que solo puede tener una.
+     *
+     * @param ex Excepción capturada.
+     * @return ResponseEntity con mensaje amigable y código 409 (CONFLICT).
+     */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String message = "No se pudo completar la operación. Verifique que no haya datos duplicados o relaciones inválidas.";
+
+        if (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("user_id")) {
+            message = "El usuario ya tiene una tarjeta registrada.";
+        }
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(message);
+    }
+
+    /**
+     * Maneja excepciones cuando las credenciales proporcionadas son incorrectas.
+     * Se lanza durante el proceso de autenticación si el usuario o la contraseña no son válidos.
+     *
+     * @param ex Excepción capturada de tipo BadCredentialsException.
+     * @return ResponseEntity con mensaje claro y estado 401 (UNAUTHORIZED).
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<String> handleBadCredentialsException(BadCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Credenciales incorrectas. Verifique su nombre de usuario y contraseña.");
     }
 
     /**

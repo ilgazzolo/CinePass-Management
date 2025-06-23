@@ -26,6 +26,7 @@ public class CardService {
     private final ICardRepository cardRepository;
     private final CardValidator cardValidator;
     private final UserService userService;
+    private final IUserRepository userRepo;
 
     public static final double MAX_RECHARGE_AMOUNT = 20000.0;
     public static final double MAX_TOTAL_BALANCE = 1000000.0;
@@ -127,7 +128,10 @@ public class CardService {
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("No se encontró tarjeta para el usuario: " + user.getUsername()));
 
-        cardRepository.delete(card);
+        user.setCard(null);
+        userRepo.save(user);
+
+        cardRepository.deleteById(card.getId());
     }
 
 

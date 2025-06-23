@@ -65,8 +65,8 @@ public class CardController {
 
     @GetMapping("/balance")
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<Double> getBalance() {
-        return ResponseEntity.ok(cardService.getBalance());
+    public ResponseEntity<String> getBalance() {
+        return ResponseEntity.ok("El balance es de: $"+cardService.getBalance());
     }
 
 
@@ -99,9 +99,9 @@ public class CardController {
 
     @DeleteMapping("/delete")
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<Void> delete() {
+    public ResponseEntity<String> delete() {
         cardService.deleteFromAuthenticatedUser();
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("La tarjeta ha sido eliminada");
     }
 }
 
