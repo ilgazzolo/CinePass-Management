@@ -12,7 +12,7 @@ public class TicketRequestDTO {
 
         @NotNull(message = "Debe especificar el ID de la función.")
         @Positive(message = "El ID de la función debe ser un valor positivo.")
-        private Long FunctionId;
+        private Long functionId;
 
         @NotNull(message = "Debe especificar la cantidad de tickets.")
         @Min(value = 1, message = "Debe comprar al menos un ticket.")

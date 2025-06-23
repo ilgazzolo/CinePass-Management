@@ -12,10 +12,13 @@ import java.util.List;
 public interface IFunctionRepository extends JpaRepository<Function, Long> {
     boolean existsByCinemaIdAndShowtime(Long cinemaId, LocalDateTime showtime);
     List<Function> findByCinemaId(Long cinemaId);
-    List<Function> findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(Long movieId, int availableCapacity, LocalDateTime date);
-    List<Function> findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
-            ScreenType screenType,
-            int minCapacity,
-            LocalDateTime currentDate
-    );
+    List<Function> findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfterAndCinema_EnabledTrue(
+            Long movieId, int capacity, LocalDateTime showtime);
+    List<Function> findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfterAndCinema_EnabledTrue(
+            ScreenType screenType, int capacity, LocalDateTime showtime);
+    List<Function> findByCinemaIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
+            Long cinemaId, int availableCapacity, LocalDateTime showtime);
+
+
+
 }

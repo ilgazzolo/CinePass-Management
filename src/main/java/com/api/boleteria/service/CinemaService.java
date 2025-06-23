@@ -44,8 +44,8 @@ public class CinemaService {
             CinemaValidator.validateFields(dto);
 
             // Verificar si ya existe una sala con el mismo nombre
-            if (cinemaRepository.existsByName(dto.getNombre())) { //
-                throw new BadRequestException("Ya existe una sala con el nombre: " + dto.getNombre()); //
+            if (cinemaRepository.existsByName(dto.getName())) { //
+                throw new BadRequestException("Ya existe una sala con el nombre: " + dto.getName()); //
             }
 
             cinemasToSave.add(mapToEntity(dto));
@@ -148,13 +148,13 @@ public class CinemaService {
         CinemaValidator.validateId(id);
 
         // Verificar si el nuevo nombre ya existe en otra sala (excluyendo la sala actual)
-        if (cinemaRepository.existsByNameAndIdNot(entity.getNombre(), id)) { //
-            throw new BadRequestException("Ya existe otra sala con el nombre: " + entity.getNombre()); //
+        if (cinemaRepository.existsByNameAndIdNot(entity.getName(), id)) { //
+            throw new BadRequestException("Ya existe otra sala con el nombre: " + entity.getName()); //
         }
 
         return cinemaRepository.findById(id)
                 .map(c -> {
-                    c.setName(entity.getNombre()); // Actualizar también el nombre
+                    c.setName(entity.getName());
                     c.setScreenType(entity.getScreenType());
                     c.setAtmos(entity.getAtmos());
                     c.setSeatCapacity(entity.getCapacity());
@@ -254,7 +254,7 @@ public class CinemaService {
 
     private Cinema mapToEntity(CinemaRequestDTO dto) {
         Cinema cinema = new Cinema();
-        cinema.setName(dto.getNombre());
+        cinema.setName(dto.getName());
         cinema.setScreenType(dto.getScreenType());
         cinema.setAtmos(dto.getAtmos());
         cinema.setSeatCapacity(dto.getCapacity());

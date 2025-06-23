@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -35,7 +37,8 @@ public class Function {
     private Movie movie;
 
     @OneToMany(mappedBy = "function", cascade = CascadeType.ALL)
-    private Set<Ticket> tickets = new HashSet<>();
+    private List<Ticket> tickets = new ArrayList<>();
+
 
 
 

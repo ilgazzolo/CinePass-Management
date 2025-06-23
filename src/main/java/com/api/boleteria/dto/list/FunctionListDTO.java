@@ -7,7 +7,6 @@ public record FunctionListDTO(
         Long id,
         LocalDate date,
         LocalTime time,
-        Long cinema,
-        String movieName,
-        Integer availableCapacity
+        Long cinemaId,
+        Long movieId
 ) {}

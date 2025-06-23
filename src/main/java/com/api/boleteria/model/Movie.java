@@ -37,7 +37,9 @@ public class Movie {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String synopsis;
 
-    @OneToMany
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Function> functions = new ArrayList<>();
+
+
 
 }

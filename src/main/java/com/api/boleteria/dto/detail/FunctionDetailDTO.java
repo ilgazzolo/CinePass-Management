@@ -4,6 +4,8 @@ public record FunctionDetailDTO(
         Long id,
         String date,
         Long cinemaId,
+        String cinemaName,
         Long movieId,
-        String movieName
+        String movieName,
+        Integer availableCapacity
 ) {}

@@ -84,8 +84,8 @@ public class FunctionController {
      */
     @GetMapping("/available/{movieId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<FunctionListDTO>> getAvailableFunctionsPerMovie(@PathVariable Long movieId) {
-        List<FunctionListDTO> functions = functionService.findByMovieIdAndAvailableCapacity(movieId);
+    public ResponseEntity<List<FunctionDetailDTO>> getAvailableFunctionsPerMovie(@PathVariable Long movieId) {
+        List<FunctionDetailDTO> functions = functionService.findByMovieIdAndAvailableCapacity(movieId);
         return ResponseEntity.ok(functions);
     }
 
@@ -99,26 +99,40 @@ public class FunctionController {
      */
     @GetMapping("/screentype/{screenType}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<FunctionListDTO>> getByScreenType(@PathVariable ScreenType screenType) {
-        List<FunctionListDTO> functions = functionService.findByScreenType(screenType);
+    public ResponseEntity<List<FunctionDetailDTO>> getByScreenType(@PathVariable ScreenType screenType) {
+        List<FunctionDetailDTO> functions = functionService.findByScreenType(screenType);
         return ResponseEntity.ok(functions);
     }
 
+    /**
+     * Endpoint para obtener funciones disponibles de una sala específica.
+     *
+     * @param cinemaId ID de la sala a consultar.
+     * @return Lista de funciones detalladas.
+     */
+    @GetMapping("/cinema/{cinemaId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT')")
+    public ResponseEntity<List<FunctionDetailDTO>> getFunctionsByCinema(@PathVariable Long cinemaId) {
+        List<FunctionDetailDTO> result = functionService.findByCinemaId(cinemaId);
+        return ResponseEntity.ok(result);
+    }
 
-        //-------------------------------UPDATE--------------------------------//
 
-        /**
-         * Actualiza una función por su ID.
-         *
-         * @param id Identificador de la función a actualizar.
-         * @param entity DTO con los nuevos datos de la función.
-         * @return ResponseEntity con el detalle actualizado de la función.
-         */
-        @PutMapping("/update/{id}")
-        @PreAuthorize("hasRole('ADMIN')")
-        public ResponseEntity<FunctionDetailDTO> update (@PathVariable Long id, @Valid @RequestBody FunctionRequestDTO
-        entity){
-            return ResponseEntity.ok(functionService.updateById(id, entity));
+
+    //-------------------------------UPDATE--------------------------------//
+
+    /**
+     * Actualiza una función por su ID.
+     *
+     * @param id Identificador de la función a actualizar.
+     * @param entity DTO con los nuevos datos de la función.
+     * @return ResponseEntity con el detalle actualizado de la función.
+     */
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<FunctionDetailDTO> update (@PathVariable Long id,
+                                                     @Valid @RequestBody FunctionRequestDTO entity){
+        return ResponseEntity.ok(functionService.updateById(id, entity));
         }
 
 

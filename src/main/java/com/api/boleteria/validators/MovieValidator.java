@@ -109,7 +109,6 @@ public class MovieValidator {
         if (classification == null || classification.isBlank()) {
             throw new BadRequestException("La clasificación es obligatoria.");
         }
-        // Aquí se podrían agregar validaciones adicionales para valores permitidos específicos
     }
 
     /**

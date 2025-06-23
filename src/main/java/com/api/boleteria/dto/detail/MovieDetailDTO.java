@@ -9,6 +9,5 @@ public record MovieDetailDTO(
         String genre,
         String director,
         String rating,
-        String synopsis,
-        List<Long> functionListID
+        String synopsis
 ){}

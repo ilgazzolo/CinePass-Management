@@ -18,7 +18,7 @@ public class CinemaValidator {
      * @throws BadRequestException si alguna validación falla.
      */
     public static void validateFields(CinemaRequestDTO dto) {
-        validateName(dto.getNombre());
+        validateName(dto.getName());
         validateScreenType(dto.getScreenType());
         validateCapacity(dto.getCapacity());
         validateAtmos(dto.getAtmos());

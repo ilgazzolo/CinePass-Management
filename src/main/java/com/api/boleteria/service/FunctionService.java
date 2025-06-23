@@ -71,15 +71,19 @@ public class FunctionService {
 
             Function function = mapToEntity(entity, cinema, movie);
 
+            function.setCinema(cinema);
+            function.setMovie(movie);
+
             Function saved = functionRepo.save(function);
-            movie.getFunctions().add(saved);
-            cinema.getFunctions().add(saved);
+
+
 
             createdFunctions.add(mapToDetailDTO(saved));
         }
 
         return createdFunctions;
     }
+
 
 
 
@@ -93,15 +97,20 @@ public class FunctionService {
      * @throws NotFoundException si no hay funciones cargadas en el sistema.
      */
     public List<FunctionListDTO> findAll() {
-        List<Function> functions = functionRepo.findAll();
+        List<Function> functions = functionRepo.findAll()
+                .stream()
+                .filter(f -> Boolean.TRUE.equals(f.getCinema().getEnabled()))
+                .toList();
 
         if (functions.isEmpty()) {
             throw new NotFoundException("No hay funciones cargadas en el sistema.");
         }
+
         return functions.stream()
                 .map(this::mapToListDTO)
                 .toList();
     }
+
 
     /**
      * obtiene las funciones segun un ID especificado
@@ -110,11 +119,17 @@ public class FunctionService {
      */
     public FunctionDetailDTO findById(Long id) {
         FunctionValidator.validateId(id);
+
         Function function = functionRepo.findById(id)
-                .orElseThrow(() -> new NotFoundException("La funcion con ID: " + id + " no fue encontrada."));
+                .orElseThrow(() -> new NotFoundException("La función con ID: " + id + " no fue encontrada."));
+
+        if (!Boolean.TRUE.equals(function.getCinema().getEnabled())) {
+            throw new NotFoundException("La sala de la función con ID " + id + " está deshabilitada.");
+        }
 
         return mapToDetailDTO(function);
     }
+
 
     /**
      * Muestra solo las próximas funciones disponibles de una película, según su ID.
@@ -128,7 +143,7 @@ public class FunctionService {
      * @throws IllegalArgumentException si el ID proporcionado no es válido.
      * @throws NotFoundException si no existe una película con el ID especificado o si no hay funciones disponibles.
      */
-    public List<FunctionListDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
+    public List<FunctionDetailDTO> findByMovieIdAndAvailableCapacity(Long movieId) {
         FunctionValidator.validateMovieId(movieId);
 
         if (!movieRepo.existsById(movieId)) {
@@ -136,7 +151,7 @@ public class FunctionService {
         }
 
         List<Function> functions = functionRepo
-                .findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
+                .findByMovieIdAndAvailableCapacityGreaterThanAndShowtimeAfterAndCinema_EnabledTrue(
                         movieId, 0, LocalDateTime.now());
 
         if (functions.isEmpty()) {
@@ -144,7 +159,7 @@ public class FunctionService {
         }
 
         return functions.stream()
-                .map(this::mapToListDTO)
+                .map(this::mapToDetailDTO)
                 .toList();
     }
 
@@ -155,11 +170,11 @@ public class FunctionService {
      * @return Lista de FunctionListDTO con las funciones encontradas.
      * @throws NotFoundException si no hay funciones disponibles para el tipo de pantalla.
      */
-    public List<FunctionListDTO> findByScreenType(ScreenType screenType) {
+    public List<FunctionDetailDTO> findByScreenType(ScreenType screenType) {
         CinemaValidator.validateScreenType(screenType);
 
         List<Function> functions = functionRepo
-                .findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfter(
+                .findByCinema_ScreenTypeAndAvailableCapacityGreaterThanAndShowtimeAfterAndCinema_EnabledTrue(
                         screenType, 0, LocalDateTime.now());
 
         if (functions.isEmpty()) {
@@ -167,9 +182,46 @@ public class FunctionService {
         }
 
         return functions.stream()
-                .map(this::mapToListDTO)
+                .map(this::mapToDetailDTO)
                 .toList();
     }
+
+    /**
+     * Muestra las funciones disponibles de una sala específica según su ID.
+     *
+     * Solo se devuelven funciones si:
+     * - La sala existe.
+     * - La sala está habilitada.
+     * - La función tiene capacidad disponible.
+     * - La función tiene una fecha posterior a la actual.
+     *
+     * @param cinemaId ID de la sala a filtrar funciones.
+     * @return Lista de FunctionDetailDTO con la información de las funciones encontradas.
+     * @throws NotFoundException si la sala no existe, está deshabilitada o no hay funciones disponibles.
+     */
+    public List<FunctionDetailDTO> findByCinemaId(Long cinemaId) {
+        FunctionValidator.validateCinemaId(cinemaId);
+
+        Cinema cinema = cinemaRepo.findById(cinemaId)
+                .orElseThrow(() -> new NotFoundException("No se encontró la sala con ID " + cinemaId));
+
+        if (!Boolean.TRUE.equals(cinema.getEnabled())) {
+            throw new NotFoundException("La sala con ID " + cinemaId + " está deshabilitada.");
+        }
+
+        List<Function> functions = functionRepo
+                .findByCinemaIdAndAvailableCapacityGreaterThanAndShowtimeAfter(
+                        cinemaId, 0, LocalDateTime.now());
+
+        if (functions.isEmpty()) {
+            throw new NotFoundException("No hay funciones disponibles para la sala con ID " + cinemaId);
+        }
+
+        return functions.stream()
+                .map(this::mapToDetailDTO)
+                .toList();
+    }
+
 
 
 
@@ -243,8 +295,10 @@ public class FunctionService {
                 function.getId(),
                 function.getShowtime().format(DateTimeFormatter.ISO_DATE_TIME),
                 function.getCinema().getId(),
+                function.getCinema().getName(),
                 function.getMovie().getId(),
-                function.getMovie().getTitle()
+                function.getMovie().getTitle(),
+                function.getAvailableCapacity()
         );
     }
 
@@ -259,8 +313,7 @@ public class FunctionService {
                 function.getShowtime().toLocalDate(),
                 function.getShowtime().toLocalTime(),
                 function.getCinema().getId(),
-                function.getMovie().getTitle(),
-                function.getAvailableCapacity()
+                function.getMovie().getId()
         );
     }
 

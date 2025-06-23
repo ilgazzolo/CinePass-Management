@@ -112,6 +112,7 @@ public class CinemaController {
      * @return ResponseEntity con la lista de salas o 204 No Content si no hay coincidencias.
      */
     @GetMapping("/capacity/{capacity}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<List<CinemaListDTO>> getBySeatCapacity(@PathVariable Integer capacity){
         List<CinemaListDTO> list = cinemaService.findBySeatCapacity(capacity);
         return ResponseEntity.ok(list);

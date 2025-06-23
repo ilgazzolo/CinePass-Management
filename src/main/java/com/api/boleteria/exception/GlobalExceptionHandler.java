@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -78,10 +79,10 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        String nombreParametro = ex.getName();
+        String name = ex.getName();
         return ResponseEntity
                 .badRequest()
-                .body("El parámetro '" + nombreParametro + "' debe ser un número válido.");
+                .body("El parámetro '" + name + "' debe ser válido.");
     }
 
 
@@ -142,26 +143,15 @@ public class GlobalExceptionHandler {
      * @return ResponseEntity con mensaje de error y estado HTTP 403 (Forbidden).
      */
 
-    @ExceptionHandler(AccesDeniedException.class)
-    public ResponseEntity<String> AccesDeniedExceptionsHandler(AccesDeniedException ex){
+    @ExceptionHandler(AccessDeniedExceptionPeronalized.class)
+    public ResponseEntity<String> AccesDeniedExceptionsHandler(AccessDeniedExceptionPeronalized ex){
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
-    /**
-     * Maneja excepciones de acceso denegado lanzadas cuando un usuario no tiene permisos suficientes.
-     *
-     * Este handler se activa cuando se lanza una {@link AccessDeniedException}, por ejemplo,
-     * al intentar acceder a un recurso protegido sin el rol correspondiente.
-     *
-     * @param ex Excepción que contiene el mensaje de error.
-     * @return ResponseEntity con el mensaje de error y el estado HTTP 403 (Forbidden).
-     */
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> AccesDeniedExceptionsDefaultHandler(AccessDeniedException ex){
+    public ResponseEntity<String> AccesDeniedExceptionsHandler(AccessDeniedException ex){
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
-
-
 
     /**
      * Maneja la excepción UsernameNotFoundException y devuelve una respuesta con estado 404.
@@ -213,6 +203,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(mensajeError);
     }
 
+    /**
+     * Maneja las excepciones de tipo {@link AuthorizationDeniedException} lanzadas cuando
+     * un usuario intenta acceder a un recurso o realizar una acción sin los permisos necesarios.
+     *
+     * @param ex la excepción {@code AuthorizationDeniedException} capturada.
+     * @return una {@link ResponseEntity} con código 403 (Forbidden) y un mensaje personalizado.
+     */
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<String> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN) // Código 403
+                .body("No tienes autorización para realizar esta acción"); // Mensaje personalizado
+    }
+
+
+
 
     /**
      * Maneja excepciones generales no capturadas específicamente.
@@ -222,9 +228,13 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> otherExceptionHandler(Exception ex){
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado: " + ex.getMessage());
+    public ResponseEntity<String> otherExceptionHandler(Exception ex) {
+        ex.printStackTrace(); // Muestra en consola el error completo con origen
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error inesperado: " + ex.getMessage());
     }
+
 
 
 

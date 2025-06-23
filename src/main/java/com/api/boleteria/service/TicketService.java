@@ -2,7 +2,7 @@ package com.api.boleteria.service;
 
 import com.api.boleteria.dto.detail.TicketDetailDTO;
 import com.api.boleteria.dto.request.TicketRequestDTO;
-import com.api.boleteria.exception.AccesDeniedException;
+import com.api.boleteria.exception.AccessDeniedExceptionPeronalized;
 import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
 import com.api.boleteria.model.Card;
@@ -19,10 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -126,7 +125,7 @@ public class TicketService {
      * @return TicketDetailDTO con los datos del ticket.
      * @throws IllegalArgumentException si el ID del ticket es nulo o menor o igual a cero.
      * @throws NotFoundException si no se encuentra un ticket con el ID especificado.
-     * @throws AccesDeniedException si el ticket no pertenece al usuario autenticado.
+     * @throws AccessDeniedExceptionPeronalized si el ticket no pertenece al usuario autenticado.
      */
     public TicketDetailDTO findTicketById(Long ticketId) {
         User user = userService.findAuthenticatedUser();
@@ -135,7 +134,7 @@ public class TicketService {
                 .orElseThrow(() -> new NotFoundException("No se encontró el ticket con ID: " + ticketId));
 
         if (!ticket.getUser().getId().equals(user.getId())) {
-            throw new AccesDeniedException("No tiene permiso para ver este ticket.");
+            throw new AccessDeniedExceptionPeronalized("No tiene permiso para ver este ticket.");
         }
 
         return mapToDetailDTO(ticket);

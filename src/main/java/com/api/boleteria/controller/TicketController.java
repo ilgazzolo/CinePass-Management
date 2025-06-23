@@ -36,8 +36,11 @@ public class TicketController {
     @PostMapping("/buy")
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<List<TicketDetailDTO>> buyTicket(@RequestBody @Valid TicketRequestDTO entity) {
+        System.out.println("Recibido functionId = " + entity.getFunctionId());
+        System.out.println("Recibido quantity = " + entity.getQuantity());
         return ResponseEntity.ok(ticketService.buyTickets(entity));
     }
+
 
 
 

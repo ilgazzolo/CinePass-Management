@@ -190,10 +190,7 @@ public class MovieService {
                 movie.getMovieGenre(),
                 movie.getDirector(),
                 movie.getClassification(),
-                movie.getSynopsis(),
-                movie.getFunctions().stream()
-                        .map(Function::getId)
-                        .toList()
+                movie.getSynopsis()
         );
     }
 
