@@ -36,7 +36,7 @@ public class Function {
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
 
-    @OneToMany(mappedBy = "function", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "function", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Ticket> tickets = new ArrayList<>();
 
 

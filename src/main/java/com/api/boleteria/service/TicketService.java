@@ -67,10 +67,16 @@ public class TicketService {
 
         Function function = functionRepository.findById(dto.getFunctionId())
                 .orElseThrow(() -> new NotFoundException("Función no encontrada."));
+
+        if (!function.getCinema().getEnabled()) {
+            throw new BadRequestException("La sala asociada a la función está inhabilitada.");
+        }
+
         TicketValidator.validateCapacity(function, dto.getQuantity());
 
         Card card = cardRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NotFoundException("El usuario " + user.getUsername() + " no tiene una tarjeta registrada."));
+
         TicketValidator.validateCardBalance(card, dto.getQuantity());
 
         double totalAmount = TICKET_PRICE * dto.getQuantity();
@@ -81,17 +87,21 @@ public class TicketService {
         functionRepository.save(function);
 
         List<Ticket> createdTickets = IntStream.range(0, dto.getQuantity())
-                .mapToObj(i -> mapToEntity(user, function))
-                .map(ticketRepository::save)
+                .mapToObj(i -> {
+                    Ticket ticket = mapToEntity(user, function);
+                    function.getTickets().add(ticket); // setteo la relacion en ambos lados
+                    user.getTickets().add(ticket); // setteo la relacion en ambosl ados
+                    return ticketRepository.save(ticket);
+                })
                 .toList();
 
-        user.getTickets().addAll(createdTickets);
-        userRepository.save(user);
 
         return createdTickets.stream()
                 .map(this::mapToDetailDTO)
                 .toList();
     }
+
+
 
 
 
@@ -160,6 +170,13 @@ public class TicketService {
         );
     }
 
+    /**
+     * Mapea los datos necesarios para crear una entidad Ticket a partir de un usuario y una función.
+     *
+     * @param user     Usuario que compra el ticket.
+     * @param function Función asociada al ticket.
+     * @return Nueva instancia de Ticket con los datos seteados.
+     */
     private Ticket mapToEntity(User user, Function function) {
         Ticket ticket = new Ticket();
         ticket.setTicketPrice(TICKET_PRICE);
@@ -168,5 +185,6 @@ public class TicketService {
         ticket.setFunction(function);
         return ticket;
     }
+
 
 }

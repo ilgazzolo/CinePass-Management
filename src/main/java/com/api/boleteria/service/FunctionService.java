@@ -5,10 +5,9 @@ import com.api.boleteria.dto.list.FunctionListDTO;
 import com.api.boleteria.dto.request.FunctionRequestDTO;
 import com.api.boleteria.exception.BadRequestException;
 import com.api.boleteria.exception.NotFoundException;
-import com.api.boleteria.model.Cinema;
+import com.api.boleteria.model.*;
 import com.api.boleteria.model.enums.ScreenType;
-import com.api.boleteria.model.Function;
-import com.api.boleteria.model.Movie;
+import com.api.boleteria.repository.ICardRepository;
 import com.api.boleteria.repository.ICinemaRepository;
 import com.api.boleteria.repository.IFunctionRepository;
 import com.api.boleteria.repository.IMovieRepository;
@@ -33,6 +32,7 @@ public class FunctionService {
     private final IFunctionRepository functionRepo;
     private final ICinemaRepository cinemaRepo;
     private final IMovieRepository movieRepo;
+    private final ICardRepository cardRepo;
 
 
     //-------------------------------SAVE--------------------------------//
@@ -269,18 +269,37 @@ public class FunctionService {
 
 
     //-------------------------------DELETE--------------------------------//
-
     /**
-     * elimina una funcion segun un ID especificado
-     * @param id de la funcion a eliminar
+     * Elimina una función según un ID especificado.
+     * <p>
+     * Antes de eliminar, reintegra el saldo correspondiente en la tarjeta de cada usuario
+     * que tenga tickets asociados a la función.
+     * </p>
+     *
+     * @param id ID de la función a eliminar.
+     * @throws NotFoundException si no se encuentra la función con el ID especificado
+     *         o si algún usuario asociado no tiene tarjeta registrada.
      */
+    @Transactional
     public void deleteById(Long id) {
-        if (!functionRepo.existsById(id)) {
-            throw new NotFoundException("La funcion con ID: " + id + " no fue encontrada.");
-        }
-        functionRepo.deleteById(id);
-    }
+        Function function = functionRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException("La función con ID: " + id + " no fue encontrada."));
 
+        List<Ticket> tickets = function.getTickets();
+
+        for (Ticket ticket : tickets) {
+            User user = ticket.getUser();
+            Card card = cardRepo.findByUserId(user.getId())
+                    .orElseThrow(() -> new NotFoundException("El usuario " + user.getUsername() + " no tiene una tarjeta registrada."));
+
+            // Reintegrar saldo
+            card.setBalance(card.getBalance() + ticket.getTicketPrice());
+            cardRepo.save(card);
+        }
+
+        // Eliminar función junto con sus tickets (gracias a cascade y orphanRemoval)
+        functionRepo.delete(function);
+    }
 
 
     //-------------------------------MAPS--------------------------------//
